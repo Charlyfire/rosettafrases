@@ -104,16 +104,33 @@ audio de la frase completa.
 La configuración permite escoger estructuras simples, dos complementos coordinados
 y dos estructuras largas: una segunda acción con su complemento o una segunda
 oración completa después de **y**. El punto final y la conjunción son pictogramas
-propios y sus MP3 se reproducen en el lugar correspondiente al leer la oración.
+propios. Al leer la oración se escucha la conjunción, pero nunca la palabra «punto».
 
 Las actividades de oración utilizan una plancha común inspirada en el material
 aportado: marca roja de inicio a la izquierda, marca verde de final a la derecha
-y una guía horizontal. **Construye tu oración** presenta progresivamente sujetos,
-acciones compatibles y el banco completo de complementos en páginas de 12 o 18
-dibujos, distribuidas en dos o tres filas. Las opciones incompatibles permanecen
-visibles, pero no se incorporan a la frase. Los pictogramas pueden
-arrastrarse a la plancha o incorporarse mediante un toque; al tocarlos se reproduce
-su audio.
+y una guía horizontal. **Construye tu oración** se prepara con tres elecciones: sujetos dentro de cada
+oración (1 o 2), complementos por sujeto (0 a 3) y frases de la sesión (1, 3, 5 o 10).
+Con dos sujetos se construyen dos partes coordinadas, por ejemplo «Papá come arroz
+y Mamá bebe agua». Los sujetos deben ser distintos. El alumno coloca también cada
+«y» y el punto final.
+
+La pantalla mantiene visibles los bancos de sujetos, acciones, complementos y
+signos bajo una plancha de casillas con guía rosa. Los complementos se muestran en
+páginas de 18 dibujos. Solo se pueden escoger piezas que permitan terminar la
+estructura elegida; no se repite un complemento dentro de la misma parte. Se puede
+reutilizar en la parte del segundo sujeto. Los pictogramas se incorporan mediante
+toque o arrastre, sin reproducir su audio. Debajo de cada dibujo hay un botón
+«Escuchar» independiente: lee la tarjeta sin colocarla ni avanzar la actividad. El control «Palabras» permite mostrar u
+ocultar los nombres. Al completar la última frase se presenta el final de sesión,
+con opciones de repetirla o volver al inicio.
+
+La plancha superior muestra los dibujos ampliados y aprovecha el espacio de los
+nombres cuando están ocultos. En el banco de complementos, **Ocultar complementos
+incompatibles** está activado por defecto: primero se elige el verbo y después
+se muestran únicamente sus complementos. Al desactivarlo se muestra todo el banco,
+con las opciones incompatibles desactivadas. El filtro se actualiza al cambiar de
+verbo o pasar al segundo sujeto, y vuelve a la primera página. Los verbos sin
+complementos, como «corre», se trabajan eligiendo cero complementos en la configuración.
 
 El botón **Escuchar frase** utiliza el audio completo cuando la combinación tiene
 uno registrado. En las demás combinaciones reproduce los MP3 de las palabras con

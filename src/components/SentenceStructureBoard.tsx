@@ -68,6 +68,8 @@ export function SentenceStructureBoard({
           <div
             className={`sentence-board__slot sentence-board__slot--${role} ${index === activeIndex ? 'sentence-board__slot--active' : ''}`}
             key={`${role}-${index}`}
+            aria-label={`${roleLabels[role]}: ${pictogram?.label ?? 'vacío'}`}
+            aria-current={index === activeIndex ? 'step' : undefined}
           >
             <span>{roleLabels[role]}</span>
             <div className="sentence-board__visual">{pictogram && <BoardImage pictogram={pictogram} />}</div>

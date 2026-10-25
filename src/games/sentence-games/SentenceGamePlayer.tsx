@@ -6,6 +6,7 @@ import { PictogramOption } from '../../components/PictogramOption'
 import { SentenceStructureBoard, type SentenceBoardSlot } from '../../components/SentenceStructureBoard'
 import { resolveAssetUrl } from '../../content/contentRepository'
 import type { AudioResource, Pictogram } from '../../domain/content'
+import { sentenceWords } from '../../utils/sentenceAudio'
 import { useAudioPlayer } from '../../hooks/useAudioPlayer'
 import { positiveFeedback, retryAudioFile, wrongFeedbackAudioFile } from '../recognition/recognitionAudio'
 import type { SentenceGameMode, SentenceGameRound } from './sentenceGameRounds'
@@ -30,17 +31,14 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
   const sentenceAudio = round?.audioId ? audioById.get(round.audioId) : undefined
   const audioFileFor = useCallback((pictogram: Pictogram) =>
     pictogram.audioIds.map((id) => audioById.get(id)).find(Boolean), [audioById])
-  const partAudioFiles = useMemo(() => (round?.parts ?? []).flatMap((part) => audioFileFor(part) ? [audioFileFor(part) as string] : []), [audioFileFor, round])
-  const pointAudioFile = useMemo(() => {
-    const point = round?.parts.find(({ id }) => id === 'punto')
-    return point ? audioFileFor(point) : undefined
-  }, [audioFileFor, round])
+  const spokenParts = useMemo(() => sentenceWords(round?.parts ?? []), [round])
+  const partAudioFiles = useMemo(() => spokenParts.flatMap((part) => audioFileFor(part) ? [audioFileFor(part) as string] : []), [audioFileFor, spokenParts])
   const complete = Boolean(round && selected.length === round.parts.length)
 
   const playSentence = useCallback(() => {
-    if (sentenceAudio) play(sentenceAudio, () => pointAudioFile && play(pointAudioFile))
-    else if (mode !== 'complete-dictation' && round && partAudioFiles.length === round.parts.length) playCompactSequence(partAudioFiles)
-  }, [mode, partAudioFiles, play, playCompactSequence, pointAudioFile, round, sentenceAudio])
+    if (sentenceAudio) play(sentenceAudio)
+    else if (mode !== 'complete-dictation' && round && partAudioFiles.length === spokenParts.length) playCompactSequence(partAudioFiles)
+  }, [mode, partAudioFiles, play, playCompactSequence, round, sentenceAudio, spokenParts.length])
 
   useEffect(() => {
     stop()
@@ -55,20 +53,16 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
     if (!round || complete) return
     const expected = round.parts[selected.length]
     if (id !== expected.id) {
-      const chosen = round.options.find((item) => item.id === id)
       const next = attempts + 1
       setAttempts(next)
       const afterWord = () => next >= 2
         ? play(retryAudioFile, mode === 'complete-dictation' ? playSentence : undefined)
         : play(wrongFeedbackAudioFile)
-      const chosenAudio = chosen ? audioFileFor(chosen) : undefined
-      if (chosenAudio) play(chosenAudio, afterWord)
-      else afterWord()
+      afterWord()
       return
     }
     setSelected((current) => [...current, expected])
     setAttempts(0)
-    play(audioFileFor(expected))
     if (selected.length + 1 === round.parts.length) {
       setFeedback(positiveFeedback[0].text)
       if (expected.id !== 'punto') play(positiveFeedback[0].file)
@@ -95,9 +89,9 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
       : <p className="teacher-oral-prompt">Dictado oral del docente</p>)}
     <SentenceStructureBoard slots={slots} activeIndex={complete ? undefined : selected.length} onDropPictogram={complete ? undefined : choose} showLabels={showLabels} />
     {!complete && <section className={`sentence-game-options sentence-game-options--${Math.min(remaining.length, 8)}`} aria-label="Pictogramas disponibles">
-      {remaining.map((item) => <PictogramOption key={item.id} pictogram={item} showLabel={showLabels} onSelect={() => choose(item.id)} draggable onDragStart={(event: DragEvent<HTMLButtonElement>) => event.dataTransfer.setData('text/rosetta-pictogram', item.id)} />)}
+      {remaining.map((item) => <PictogramOption key={item.id} pictogram={item} showLabel={showLabels} onListen={() => play(audioFileFor(item))} onSelect={() => choose(item.id)} draggable onDragStart={(event: DragEvent<HTMLButtonElement>) => event.dataTransfer.setData('text/rosetta-pictogram', item.id)} />)}
     </section>}
-    {complete && <nav className="game-controls"><button className="button" onClick={() => { setSelected([]); setFeedback(undefined) }}>Repetir</button>{(sentenceAudio || (mode !== 'complete-dictation' && partAudioFiles.length === round.parts.length)) && <AudioButton label="Leer frase" ariaLabel="Leer la frase completa" onClick={playSentence} />}<button className="button button--primary" onClick={() => setRoundIndex((value) => value + 1)}>Siguiente frase</button></nav>}
+    {complete && <nav className="game-controls"><button className="button" onClick={() => { setSelected([]); setFeedback(undefined) }}>Repetir</button>{(sentenceAudio || (mode !== 'complete-dictation' && partAudioFiles.length === spokenParts.length)) && <AudioButton label="Leer frase" ariaLabel="Leer la frase completa" onClick={playSentence} />}<button className="button button--primary" onClick={() => setRoundIndex((value) => value + 1)}>Siguiente frase</button></nav>}
     <Feedback message={feedback} />
     {audioError && <p className="asset-warning" role="status">No se ha podido reproducir uno de los audios.</p>}
   </main>

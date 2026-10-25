@@ -222,7 +222,8 @@ export function App() {
   if (view === 'sentence-builder-config') {
     return (
       <SentenceBuilderConfigScreen
-        sentences={data.sentences}
+        pictograms={data.content.pictograms}
+        compatibility={data.actionCompatibility}
         onBack={() => setView('home')}
         onStart={(nextSettings) => {
           setSentenceBuilderSettings(nextSettings)

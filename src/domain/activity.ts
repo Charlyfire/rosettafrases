@@ -132,10 +132,9 @@ export interface SequentialDictationSettings {
 }
 
 export interface SentenceBuilderSettings {
-  structure: SentenceStructureType
-  rows: 2 | 3
-  complementScope: 'compatible' | 'all'
-  showLabels: boolean
+  subjectCount: 1 | 2
+  complementCount: 0 | 1 | 2 | 3
+  roundCount: number
 }
 
 export interface SentenceGameSettings {

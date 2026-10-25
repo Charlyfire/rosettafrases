@@ -6,6 +6,7 @@ import { SentenceStructureBoard } from '../../components/SentenceStructureBoard'
 import { resolveAssetUrl } from '../../content/contentRepository'
 import type { AudioResource, Pictogram } from '../../domain/content'
 import { positiveFeedback, retryAudioFile, wrongFeedbackAudioFile } from '../recognition/recognitionAudio'
+import { sentenceWords } from '../../utils/sentenceAudio'
 import { useAudioPlayer } from '../../hooks/useAudioPlayer'
 import type { DictationRound, SentencePart } from './dictationRounds'
 
@@ -48,35 +49,31 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
   const [sentenceComplete, setSentenceComplete] = useState(false)
   const [finished, setFinished] = useState(false)
   const timerRef = useRef<number | undefined>(undefined)
-  const { audioError: audioMissing, play: playFile, playSequence, playCompactSequence, stop } = useAudioPlayer()
+  const { audioError: audioMissing, play: playFile, playCompactSequence, stop } = useAudioPlayer()
 
   const round = rounds[roundIndex]
   const step = round?.steps[stepIndex]
   const target = step?.options.find(({ id }) => id === step.correctId)
   const targetAudio = audioResources.find((audio) => target?.audioIds.includes(audio.id))
   const sentenceAudio = audioResources.find(({ id }) => id === round?.sentence.audioId)
-  const spokenAudioFiles = useMemo(() => (round?.parts ?? []).flatMap((part) => {
+  const spokenParts = useMemo(() => sentenceWords(round?.parts ?? []), [round])
+  const spokenAudioFiles = useMemo(() => spokenParts.flatMap((part) => {
     const audio = audioResources.find((resource) => part.audioIds.includes(resource.id))
     return audio ? [audio.file] : []
-  }), [audioResources, round])
-  const pointAudioFile = useMemo(() => {
-    const point = round?.parts.find(({ id }) => id === 'punto')
-    return audioResources.find((resource) => point?.audioIds.includes(resource.id))?.file
-  }, [audioResources, round])
-
+  }), [audioResources, spokenParts])
   const playPrompt = useCallback(() => playFile(targetAudio?.file), [playFile, targetAudio?.file])
 
   const playSentence = useCallback(() => {
     if (sentenceAudio?.file) {
-      playFile(sentenceAudio.file, () => pointAudioFile && playSequence([pointAudioFile]))
+      playFile(sentenceAudio.file)
       return
     }
-    if (spokenAudioFiles.length !== round.parts.length) {
+    if (spokenAudioFiles.length !== spokenParts.length) {
       playFile(undefined)
       return
     }
     playCompactSequence(spokenAudioFiles)
-  }, [playCompactSequence, playFile, playSequence, pointAudioFile, round.parts.length, sentenceAudio?.file, spokenAudioFiles])
+  }, [playCompactSequence, playFile, spokenParts.length, sentenceAudio?.file, spokenAudioFiles])
 
   useEffect(() => {
     if (audioAutoplay && step && !sentenceComplete && !finished) playPrompt()
@@ -85,6 +82,12 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
       window.clearTimeout(timerRef.current)
     }
   }, [audioAutoplay, finished, playPrompt, sentenceComplete, step, stop])
+
+  useEffect(() => {
+    if (sentenceComplete && !finished) {
+      playFile(positiveFeedback[roundIndex % positiveFeedback.length].file, playSentence)
+    }
+  }, [finished, playFile, playSentence, roundIndex, sentenceComplete])
 
   const moveToNextRound = () => {
     if (roundIndex >= rounds.length - 1) {
@@ -106,16 +109,14 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
     setAttempts(0)
     setWrongId(undefined)
     if (stepIndex < round.steps.length - 1) {
-      const advance = () => setStepIndex((index) => index + 1)
-      if (targetAudio?.file) playFile(targetAudio.file, advance)
-      else advance()
+      stop()
+      setStepIndex((index) => index + 1)
       return
     }
 
     const positive = positiveFeedback[roundIndex % positiveFeedback.length]
     setFeedback(positive.text)
     setSentenceComplete(true)
-    playFile(targetAudio?.file, () => playFile(positive.file, playSentence))
   }
 
   const handleSelect = (pictogram: Pictogram) => {
@@ -128,10 +129,8 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
     setAttempts(nextAttempts)
     setWrongId(pictogram.id)
     timerRef.current = window.setTimeout(() => setWrongId(undefined), 420)
-    const selectedAudio = audioResources.find((audio) => pictogram.audioIds.includes(audio.id))?.file
     const afterSelection = () => nextAttempts >= 2 ? playFile(retryAudioFile, playPrompt) : playFile(wrongFeedbackAudioFile)
-    if (selectedAudio) playFile(selectedAudio, afterSelection)
-    else afterSelection()
+    afterSelection()
   }
 
   const restart = () => {
@@ -180,16 +179,18 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
           <AudioButton className="dictation-audio-button" label="Escuchar" ariaLabel="Escuchar palabra otra vez" onClick={playPrompt} />
           <section className={`dictation-options dictation-options--${step.options.length}`} aria-label={`Elige ${roleLabels[step.role].toLowerCase()}`}>
             {step.options.map((pictogram) => (
-              <button
-                className={`dictation-option ${wrongId === pictogram.id ? 'dictation-option--try-again' : ''}`}
-                type="button"
-                key={`${round.id}-${stepIndex}-${pictogram.id}`}
-                onClick={() => handleSelect(pictogram)}
-                aria-label={pictogram.label}
-              >
-                <span className="dictation-option__visual"><DictationImage pictogram={pictogram} /></span>
-                {showLabels && <strong>{pictogram.label}</strong>}
-              </button>
+              <div className="pictogram-card" key={`${round.id}-${stepIndex}-${pictogram.id}`}>
+                <button
+                  className={`dictation-option ${wrongId === pictogram.id ? 'dictation-option--try-again' : ''}`}
+                  type="button"
+                  onClick={() => handleSelect(pictogram)}
+                  aria-label={pictogram.label}
+                >
+                  <span className="dictation-option__visual"><DictationImage pictogram={pictogram} /></span>
+                  {showLabels && <strong>{pictogram.label}</strong>}
+                </button>
+                <AudioButton className="pictogram-card__listen" label="Escuchar" ariaLabel={`Escuchar ${pictogram.label}`} onClick={() => playFile(audioResources.find((audio) => pictogram.audioIds.includes(audio.id))?.file)} />
+              </div>
             ))}
           </section>
         </>
