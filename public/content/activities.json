@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "activities": [
+    {
+      "id": "bits-initial-sound",
+      "type": "bits",
+      "title": "BITS",
+      "phase": "present",
+      "enabled": true,
+      "availableFromUnit": 6
+    },
+    {
+      "id": "listen-and-find",
+      "type": "listen-and-find",
+      "title": "Escucha y encuentra",
+      "phase": "recognize",
+      "enabled": true,
+      "availableFromUnit": 6
+    },
+    {
+      "id": "initial-sound",
+      "type": "initial-sound",
+      "title": "Sonido inicial",
+      "phase": "recognize",
+      "enabled": true,
+      "availableFromUnit": 6
+    },
+    {
+      "id": "find-same-initial",
+      "type": "find-same-initial",
+      "title": "Busca otra que empiece igual",
+      "phase": "recognize",
+      "enabled": true,
+      "availableFromUnit": 6
+    },
+    {
+      "id": "intruder",
+      "type": "intruder",
+      "title": "Intruso",
+      "phase": "recognize",
+      "enabled": true,
+      "availableFromUnit": 6
+    },
+    {
+      "id": "sequential-dictation",
+      "type": "sequential-dictation",
+      "title": "Dictado secuenciado",
+      "phase": "build",
+      "enabled": true,
+      "availableFromUnit": 1
+    },
+    {
+      "id": "sentence-builder",
+      "type": "sentence-builder",
+      "title": "Construye tu oración",
+      "phase": "build",
+      "enabled": true,
+      "availableFromUnit": 1
+    },
+    {
+      "id": "vowel-sort",
+      "type": "vowel-sort",
+      "title": "Clasificar por vocal",
+      "phase": "build",
+      "enabled": true,
+      "availableFromUnit": 6
+    },
+    {
+      "id": "complete-dictation",
+      "type": "complete-dictation",
+      "title": "Dictado completo",
+      "phase": "build",
+      "enabled": true,
+      "availableFromUnit": 1
+    },
+    {
+      "id": "sentence-order",
+      "type": "sentence-order",
+      "title": "Ordenar frase",
+      "phase": "build",
+      "enabled": true,
+      "availableFromUnit": 1
+    },
+    {
+      "id": "scene-sentence",
+      "type": "scene-sentence",
+      "title": "Construir frase a partir de imagen",
+      "phase": "build",
+      "enabled": true,
+      "availableFromUnit": 1
+    }
+  ]
+}

@@ -1,0 +1,206 @@
+- en las oraciones, quiero que sea el niño el que ponga la Y y el punto.
+
+==================================================
+4. TERMINAR DICTADO SECUENCIADO
+==================================================
+Debe permitir:
+Nivel 1:
+sujeto + acción
+Nivel 2:
+sujeto + acción + complemento
+Secuencia ejemplo:
+audio “Papá”
+→ alumno selecciona PAPÁ
+audio “come”
+→ alumno selecciona COME
+audio “espaguetis”
+→ alumno selecciona ESPAGUETIS
+Resultado:
+PAPÁ | COME | ESPAGUETIS
+Requisitos:
+- zonas de colocación grandes
+- interfaz táctil
+- repetir audio
+- avanzar solo al completar correctamente cada parte
+- feedback sencillo
+- no penalización
+Las acciones deben mostrarse en 3.ª persona singular:
+come
+bebe
+juega
+cocina
+compra
+patina
+etc.
+No usar infinitivos en estructura de oración.
+==================================================
+5. AÑADIR CLASIFICAR POR VOCAL
+==================================================
+Nuevo módulo dentro de CONSTRUIR.
+Mecánica:
+- mostrar 2 o más zonas de clasificación
+- arrastrar imágenes a la vocal correcta
+Ejemplos iniciales:
+A | U
+Después:
+A | U | I
+Y progresivamente según Rosetta.
+Ejemplo:
+abeja → A
+oso → O
+uva → U
+Configuración:
+- unidad Rosetta
+- número de vocales
+- número de imágenes
+- orden aleatorio
+Debe admitir arrastrar y también tocar imagen + tocar destino, por accesibilidad táctil.
+==================================================
+6. AÑADIR BUSCA OTRA QUE EMPIECE IGUAL
+==================================================
+Nuevo módulo dentro de RECONOCER.
+Mecánica:
+- aparece una palabra modelo
+- ejemplo: OSO
+- debajo aparecen varias imágenes
+- hay que encontrar otra palabra que empiece con el mismo sonido
+- ejemplo correcto: OLA
+No mostrar necesariamente la letra en los niveles iniciales.
+Configuración:
+- unidad Rosetta
+- número de opciones
+- sonido objetivo
+- mostrar o no vocal de apoyo
+==================================================
+7. AÑADIR INTRUSO
+==================================================
+Nuevo módulo dentro de RECONOCER.
+Mecánica:
+- mostrar varias imágenes
+- todas menos una comparten sonido inicial
+Ejemplo:
+abuelo
+avión
+agua
+oso
+Correcta:
+oso
+Configuración:
+- número de opciones
+- unidad
+- vocal objetivo
+- dificultad
+Feedback:
+- sin cruces rojas ni penalizaciones
+- permitir segundo intento
+==================================================
+8. AÑADIR DICTADO COMPLETO
+==================================================
+Nuevo módulo dentro de CONSTRUIR.
+Mecánica:
+reproducir una frase completa:
+“Papá come espaguetis.”
+Mostrar varios pictogramas.
+El alumno debe:
+1. localizar los correctos
+2. seleccionarlos
+3. colocarlos en el orden correcto
+Debe admitir:
+- sujeto + acción
+- sujeto + acción + complemento
+No concatenar audios de palabras para formar la frase si existe audio de frase completa.
+Si no existe audio de frase:
+dejar preparado el sistema para que el docente pueda usar el dictado oral.
+==================================================
+9. AÑADIR ORDENAR FRASE
+==================================================
+Nuevo módulo dentro de CONSTRUIR.
+Mecánica:
+los pictogramas correctos ya aparecen seleccionados pero desordenados.
+Ejemplo:
+ESPAGUETIS | PAPÁ | COME
+El alumno debe ordenar:
+PAPÁ | COME | ESPAGUETIS
+Permitir:
+- sujeto + acción
+- sujeto + acción + complemento
+Debe funcionar con drag & drop y alternativa táctil por selección.
+==================================================
+10. AÑADIR CONSTRUIR FRASE A PARTIR DE IMAGEN
+==================================================
+Nuevo módulo dentro de CONSTRUIR.
+Mecánica:
+- mostrar una escena
+- el alumno debe construir la frase que representa
+Ejemplo:
+imagen de papá cocinando espaguetis
+Resultado:
+PAPÁ | COCINA | ESPAGUETIS
+Usar únicamente las escenas existentes en el banco.
+Escenas conocidas actualmente:
+- Jacobo come lentejas.
+- Jacobo patina.
+- Mamá come piña.
+- Mamá lee un libro.
+- Mamá nada.
+- Papá canta.
+- Papá cocina espaguetis.
+- Papá compra leche.
+- Poncho bebe agua.
+- Poncho juega a la pelota.
+- Rosa bebe leche.
+No inventar nuevas escenas.
+==================================================
+DISEÑO DE INTERFAZ
+==================================================
+Mantener la estética actual:
+- limpia
+- fondo neutro
+- tarjetas grandes
+- tipografía legible
+- uso profesional
+- sin sobrecarga visual
+Para 3–4 años:
+- botones grandes
+- zonas táctiles amplias
+- pictogramas grandes
+- mínimo texto durante la actividad
+- sin scroll en pantalla de juego
+- pocas opciones visibles a la vez
+No añadir:
+- estrellas
+- monedas
+- vidas
+- rankings
+- barras competitivas
+- cronómetros
+- avatares
+- recompensas acumulativas
+==================================================
+REUTILIZACIÓN DE COMPONENTES
+==================================================
+Antes de crear nuevos componentes, revisa si pueden reutilizarse:
+PictureCard
+AudioButton
+ActivityHeader
+Feedback
+DropZone
+OptionGrid
+GameControls
+TeacherConfigPanel
+Si no existen, créalos de forma genérica.
+Evita duplicar lógica entre actividades.
+==================================================
+FLUJO DOCENTE
+==================================================
+La configuración general debería permitir:
+- unidad Rosetta
+- actividad
+- categoría
+- número de opciones
+- dificultad
+- orden fijo/aleatorio
+- audio automático/manual
+- repetir audio
+- modo pantalla completa
+Cada actividad puede añadir ajustes propios.

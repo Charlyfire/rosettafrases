@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "sentences": [
+    { "id": "jacobo-come-lentejas", "subjectId": "jacobo", "actionId": "come", "complementIds": ["lentejas"], "sceneImage": "images/jacobo come lentejas.png", "audioId": "sentence-jacobo-come-lentejas", "availableFromUnit": 1 },
+    { "id": "jacobo-patina", "subjectId": "jacobo", "actionId": "patina", "complementIds": [], "sceneImage": "images/jacobo patina.png", "audioId": "sentence-jacobo-patina", "availableFromUnit": 1 },
+    { "id": "mama-nada", "subjectId": "mama", "actionId": "nada", "complementIds": [], "sceneImage": "images/mamá nada.png", "audioId": "sentence-mama-nada", "availableFromUnit": 1 },
+    { "id": "papa-canta", "subjectId": "papa", "actionId": "canta", "complementIds": [], "sceneImage": "images/papa canta.png", "audioId": "sentence-papa-canta", "availableFromUnit": 1 },
+    { "id": "papa-compra-leche", "subjectId": "papa", "actionId": "compra", "complementIds": ["leche"], "sceneImage": "images/papacompra leche.png", "audioId": "sentence-papa-compra-leche", "availableFromUnit": 1 },
+    { "id": "poncho-bebe-agua", "subjectId": "poncho", "actionId": "bebe", "complementIds": ["agua"], "sceneImage": "images/poncho bebe agua.png", "audioId": "sentence-poncho-bebe-agua", "availableFromUnit": 1 },
+    { "id": "rosa-bebe-leche", "subjectId": "rosa", "actionId": "bebe", "complementIds": ["leche"], "sceneImage": "images/rosa bebe leche.png", "audioId": "sentence-rosa-bebe-leche", "availableFromUnit": 1 }
+  ],
+  "actionCompatibility": [
+    { "actionId": "barre", "allowWithoutComplement": true, "allowedComplementIds": [] },
+    { "actionId": "besa", "allowWithoutComplement": true, "allowedComplementIds": [] },
+    { "actionId": "bebe", "allowWithoutComplement": true, "allowedComplementIds": ["agua", "batido", "leche"] },
+    { "actionId": "canta", "allowWithoutComplement": true, "allowedComplementIds": [] },
+    { "actionId": "cocina", "allowWithoutComplement": true, "allowedComplementIds": ["albondigas", "alubias", "arroz", "calamares", "canelones", "carne-guisada", "cocido", "croquetas", "empanadilla", "espagueti", "filete-empanado", "filete", "guiso-verduras", "huevo-frito", "judias-verdes", "lasana", "lentejas", "macarrones", "paella", "palitos-pescado", "pescado", "pollo", "pure", "salchichas", "san-jacobo", "sopa", "tortilla-patatas", "verduras"] },
+    { "actionId": "come", "allowWithoutComplement": true, "allowedComplementIds": ["albondigas", "alubias", "arroz", "calamares", "canelones", "carne-guisada", "chocolate", "cocido", "croquetas", "empanadilla", "ensalada", "ensaladilla-rusa", "espagueti", "filete-empanado", "filete", "fruta", "galletas-chocolate", "guiso-verduras", "huevo-frito", "judias-verdes", "lasana", "lentejas", "macarrones", "macedonia", "paella", "palitos-pescado", "pan", "pescado", "pollo", "pure", "salchichas", "salsa-tomate", "san-jacobo", "sopa", "tortilla-patatas", "uvas", "verduras", "yogur", "zanahoria"] },
+    { "actionId": "compra", "allowWithoutComplement": true, "allowedComplementIds": ["agua", "albondigas", "alubias", "arroz", "batido", "calamares", "canelones", "carne-guisada", "chocolate", "cocido", "croquetas", "empanadilla", "ensalada", "ensaladilla-rusa", "espagueti", "filete-empanado", "filete", "fruta", "galletas-chocolate", "guiso-verduras", "huevo-frito", "judias-verdes", "lasana", "leche", "lentejas", "macarrones", "macedonia", "paella", "palitos-pescado", "pan", "pescado", "pollo", "pure", "salchichas", "salsa-tomate", "san-jacobo", "sopa", "tortilla-patatas", "uvas", "verduras", "yogur", "zanahoria", "construcciones", "cromos", "cuentos", "juguetes"] },
+    { "actionId": "corre", "allowWithoutComplement": true, "allowedComplementIds": [] },
+    { "actionId": "corta", "allowWithoutComplement": true, "allowedComplementIds": ["filete", "fruta", "pan", "pescado", "pollo", "salchichas", "tortilla-patatas", "verduras", "zanahoria"] },
+    { "actionId": "duerme", "allowWithoutComplement": true, "allowedComplementIds": [] },
+    { "actionId": "juega", "allowWithoutComplement": true, "allowedComplementIds": [] },
+    { "actionId": "lee", "allowWithoutComplement": true, "allowedComplementIds": ["cuentos"] },
+    { "actionId": "nada", "allowWithoutComplement": true, "allowedComplementIds": [] },
+    { "actionId": "patina", "allowWithoutComplement": true, "allowedComplementIds": [] },
+    { "actionId": "pinta", "allowWithoutComplement": true, "allowedComplementIds": [] }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "units": [
+    { "id": 1, "level": 1, "title": "Unidad 1", "focus": ["ruido", "silencio"], "availableInitialSounds": [], "availableIsolatedSounds": [] },
+    { "id": 2, "level": 1, "title": "Unidad 2", "focus": ["sonidos del ambiente"], "availableInitialSounds": [], "availableIsolatedSounds": [] },
+    { "id": 3, "level": 1, "title": "Unidad 3", "focus": ["sonidos asociados a campos semánticos"], "availableInitialSounds": [], "availableIsolatedSounds": [] },
+    { "id": 4, "level": 1, "title": "Unidad 4", "focus": ["sonidos asociados a campos semánticos"], "availableInitialSounds": [], "availableIsolatedSounds": [] },
+    { "id": 5, "level": 1, "title": "Unidad 5", "focus": ["U aislada", "A aislada"], "availableInitialSounds": [], "availableIsolatedSounds": ["u", "a"] },
+    { "id": 6, "level": 1, "title": "Unidad 6", "focus": ["U aislada", "A aislada", "U al inicio", "A al inicio"], "availableInitialSounds": ["u", "a"], "availableIsolatedSounds": ["u", "a"] },
+    { "id": 7, "level": 1, "title": "Unidad 7", "focus": ["U, A e I aisladas", "U, A e I al inicio"], "availableInitialSounds": ["u", "a", "i"], "availableIsolatedSounds": ["u", "a", "i"] },
+    { "id": 8, "level": 1, "title": "Unidad 8", "focus": ["U, A, I y O aisladas", "U, A, I y O al inicio"], "availableInitialSounds": ["u", "a", "i", "o"], "availableIsolatedSounds": ["u", "a", "i", "o"] },
+    { "id": 9, "level": 1, "title": "Unidad 9", "focus": ["U, A, I, O y E aisladas", "U, A, I, O y E al inicio"], "availableInitialSounds": ["u", "a", "i", "o", "e"], "availableIsolatedSounds": ["u", "a", "i", "o", "e"] },
+    { "id": 10, "level": 1, "title": "Unidad 10", "focus": ["U, A, I, O y E aisladas", "U, A, I, O y E al inicio"], "availableInitialSounds": ["u", "a", "i", "o", "e"], "availableIsolatedSounds": ["u", "a", "i", "o", "e"] }
+  ]
+}
