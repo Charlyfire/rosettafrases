@@ -14,6 +14,7 @@ interface SentenceStructureBoardProps {
   onDropPictogram?: (pictogramId: string) => void
   ariaLabel?: string
   showLabels?: boolean
+  onSelectSlot?: (index: number) => void
 }
 
 const roleLabels: Record<SentencePart, string> = {
@@ -43,6 +44,7 @@ export function SentenceStructureBoard({
   onDropPictogram,
   ariaLabel = 'Plancha de estructura de la oración',
   showLabels = true,
+  onSelectSlot,
 }: SentenceStructureBoardProps) {
   const canDrop = activeIndex !== undefined && Boolean(onDropPictogram)
   return (
@@ -72,8 +74,15 @@ export function SentenceStructureBoard({
             aria-current={index === activeIndex ? 'step' : undefined}
           >
             <span>{roleLabels[role]}</span>
-            <div className="sentence-board__visual">{pictogram && <BoardImage pictogram={pictogram} />}</div>
+            <div className="sentence-board__visual">{pictogram && <BoardImage key={pictogram.id} pictogram={pictogram} />}</div>
             <strong>{showLabels ? pictogram?.label ?? '\u00A0' : '\u00A0'}</strong>
+            {pictogram && onSelectSlot && <button
+              type="button"
+              className="sentence-board__edit"
+              aria-label={`Cambiar ${roleLabels[role].toLowerCase()}: ${pictogram.label}`}
+              aria-pressed={index === activeIndex}
+              onClick={() => onSelectSlot(index)}
+            />}
           </div>
         ))}
       </div>

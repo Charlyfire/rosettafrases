@@ -4,7 +4,7 @@ import { AudioButton } from '../../components/AudioButton'
 import { ConfettiBurst } from '../../components/ConfettiBurst'
 import { PictogramOption } from '../../components/PictogramOption'
 import { SentenceStructureBoard, type SentenceBoardSlot } from '../../components/SentenceStructureBoard'
-import { builderChoices, builderRoles } from './builderSession'
+import { builderChoices, builderRoles, reconcileBuilderSelection, complementCategory, complementCategoryLabels, type BuilderSelection, type ComplementCategory } from './builderSession'
 import type { SentenceBuilderSettings } from '../../domain/activity'
 import type { AudioResource, Pictogram } from '../../domain/content'
 import type { ActionCompatibility, SentenceDefinition } from '../../domain/sentence'
@@ -30,7 +30,9 @@ export function SentenceBuilderPlayer({
   settings,
   onExit,
 }: SentenceBuilderPlayerProps) {
-  const [selected, setSelected] = useState<Pictogram[]>([])
+  const [selected, setSelected] = useState<BuilderSelection>([])
+  const [editingIndex, setEditingIndex] = useState<number>()
+  const [category, setCategory] = useState<ComplementCategory>('all')
   const boardRef = useRef<HTMLDivElement>(null)
   const [page, setPage] = useState(0)
   const [round, setRound] = useState(1)
@@ -42,10 +44,11 @@ export function SentenceBuilderPlayer({
   const draggedRef = useRef(false)
   const suppressClickRef = useRef(false)
   const { audioError, play, playCompactSequence, stop } = useAudioPlayer()
-  const stage = selected.length
   const roleSequence = builderRoles(settings.subjectCount, settings.complementCount)
   const selectableParts = roleSequence.length
-  const complete = stage >= selectableParts
+  const firstEmpty = roleSequence.findIndex((_, index) => !selected[index])
+  const stage = editingIndex ?? (firstEmpty === -1 ? selectableParts : firstEmpty)
+  const complete = firstEmpty === -1 && editingIndex === undefined
   const activeRole: SentencePart | undefined = complete ? undefined : roleSequence[stage]
   const previousIdForRole = (role: SentencePart) => {
     for (let index = stage - 1; index >= 0; index -= 1) {
@@ -68,10 +71,12 @@ export function SentenceBuilderPlayer({
 
   const isSelectable = (pictogram: Pictogram, role: SentencePart = activeRole ?? 'punctuation') =>
     !complete && !finished && role === activeRole && (
-      role === 'subject' ? !selected.some((item, index) => roleSequence[index] === 'subject' && item.id === pictogram.id)
+      role === 'subject' ? !selected.some((item, index) => index !== stage && roleSequence[index] === 'subject' && item?.id === pictogram.id)
         : role === 'action' ? allowedActions.has(pictogram.id)
         : role === 'complement' ? allowedComplements.has(pictogram.id) &&
-          !selected.some((item, index) => index > roleSequence.lastIndexOf('subject', stage - 1) && roleSequence[index] === 'complement' && item.id === pictogram.id)
+          !selected.some((item, index) => index !== stage && index > roleSequence.lastIndexOf('subject', stage - 1) &&
+            index < (roleSequence.indexOf('subject', stage + 1) === -1 ? selectableParts : roleSequence.indexOf('subject', stage + 1)) &&
+            roleSequence[index] === 'complement' && item?.id === pictogram.id)
           : true
     )
 
@@ -79,10 +84,14 @@ export function SentenceBuilderPlayer({
   const complementPool = onlyCompatible
     ? bank.complements.filter(({ id }) => allowedComplements.has(id))
     : bank.complements
-  const pageCount = Math.max(1, Math.ceil(complementPool.length / pageSize))
+  const categories = (Object.keys(complementCategoryLabels) as ComplementCategory[])
+    .filter((key) => key === 'all' || complementPool.some((item) => complementCategory(item) === key))
+  const activeCategory = categories.includes(category) ? category : 'all'
+  const categorizedComplements = activeCategory === 'all' ? complementPool : complementPool.filter((item) => complementCategory(item) === activeCategory)
+  const pageCount = Math.max(1, Math.ceil(categorizedComplements.length / pageSize))
   const currentPage = Math.min(page, pageCount - 1)
-  const visibleComplements = complementPool.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
-  useEffect(() => setPage(0), [activeActionId, onlyCompatible])
+  const visibleComplements = categorizedComplements.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
+  useEffect(() => { setPage(0); setCategory('all') }, [activeActionId, onlyCompatible])
   useEffect(() => stop, [stop])
   useEffect(() => {
     const board = boardRef.current
@@ -100,7 +109,12 @@ export function SentenceBuilderPlayer({
   const place = (pictogram: Pictogram) => {
     if (!activeRole || !options.some(({ id }) => id === pictogram.id) || !isSelectable(pictogram)) return
     stop()
-    setSelected((current) => [...current, pictogram])
+    setSelected((current) => {
+      const next = [...current]
+      next[stage] = pictogram
+      return reconcileBuilderSelection(next, roleSequence, bank.rules)
+    })
+    setEditingIndex(undefined)
   }
 
   const placeById = (pictogramId: string) => {
@@ -135,8 +149,18 @@ export function SentenceBuilderPlayer({
     draggedRef.current = false
   }
 
-  const removeLast = () => { stop(); setSelected((current) => current.slice(0, -1)) }
-  const restart = () => { stop(); setSelected([]); setPage(0) }
+  const removeLast = () => {
+    stop()
+    setEditingIndex(undefined)
+    setSelected((current) => {
+      const next = [...current]
+      for (let index = next.length - 1; index >= 0; index -= 1) {
+        if (next[index]) { next[index] = undefined; break }
+      }
+      return next
+    })
+  }
+  const restart = () => { stop(); setSelected([]); setEditingIndex(undefined); setPage(0); setCategory('all') }
   const nextRound = () => {
     restart()
     if (round === settings.roundCount) setFinished(true)
@@ -146,8 +170,9 @@ export function SentenceBuilderPlayer({
   const playSentence = () => {
     if (!complete) return
     const [subject, action] = selected
+    if (!subject || !action) return
     const complementIds = selected
-      .filter((_, index) => roleSequence[index] === 'complement')
+      .filter((item, index): item is Pictogram => Boolean(item) && roleSequence[index] === 'complement')
       .map(({ id }) => id)
     const sentence = settings.subjectCount === 1 ? findBuiltSentence(sentences, subject.id, action.id, complementIds) : undefined
     const fullAudio = audioResources.find(({ id }) => id === sentence?.audioId)?.file
@@ -155,7 +180,7 @@ export function SentenceBuilderPlayer({
       play(fullAudio)
       return
     }
-    const spokenParts = sentenceWords(selected)
+    const spokenParts = sentenceWords(selected.filter((item): item is Pictogram => Boolean(item)))
     const files = spokenParts.flatMap((pictogram) => {
       const file = audioFileFor(pictogram)
       return file ? [file] : []
@@ -167,7 +192,7 @@ export function SentenceBuilderPlayer({
   const slots: SentenceBoardSlot[] = roleSequence.map((role, index) => ({ role, pictogram: selected[index] }))
 
   const writtenWords = selected
-    .filter((_, index) => roleSequence[index] !== 'punctuation')
+    .filter((item, index): item is Pictogram => Boolean(item) && roleSequence[index] !== 'punctuation')
     .map(({ label }) => label)
   const writtenSentence = `${writtenWords.join(' ')}.`
 
@@ -192,7 +217,7 @@ export function SentenceBuilderPlayer({
       showLabel={showLabels}
       disabled={!isSelectable(pictogram, role)}
       onListen={() => play(audioFileFor(pictogram))}
-      selected={selected.some(({ id }) => id === pictogram.id)}
+      selected={selected.some((item) => item?.id === pictogram.id)}
       onSelect={() => {
         if (suppressClickRef.current) {
           suppressClickRef.current = false
@@ -241,11 +266,12 @@ export function SentenceBuilderPlayer({
           activeIndex={complete ? undefined : stage}
           onDropPictogram={complete ? undefined : placeById}
           showLabels={showLabels}
+          onSelectSlot={(index) => { stop(); setEditingIndex(index) }}
         />
       </div>
       <div className="sentence-workspace__status" aria-live="polite">
-        <strong>{stageTitle}</strong>
-        <span>{complete ? 'Escucha la oración o continúa con la sesión.' : 'Toca un dibujo o arrástralo a la plancha.'}</span>
+        <strong>{editingIndex === undefined ? stageTitle : `Cambiar: ${selected[editingIndex]?.label}`}</strong>
+        <span>{complete ? 'Toca una tarjeta de arriba para cambiarla o escucha la oración.' : editingIndex !== undefined ? 'Elige el dibujo que la sustituirá.' : 'Toca un dibujo o arrástralo a la plancha.'}</span>
       </div>
       <div className="sentence-banks">
         <section className="sentence-bank sentence-bank--subjects" aria-label="Sujetos">
@@ -269,6 +295,11 @@ export function SentenceBuilderPlayer({
             <input type="checkbox" checked={onlyCompatible} onChange={(event) => setOnlyCompatible(event.target.checked)} />
             Ocultar complementos incompatibles
           </label>
+          {(!onlyCompatible || activeActionId) && categories.length > 1 && <div className="sentence-bank__categories" role="group" aria-label="Categorías de complementos">
+            {categories.map((key) => <button key={key} type="button" aria-pressed={activeCategory === key} onClick={() => { setCategory(key); setPage(0) }}>
+              {complementCategoryLabels[key]}
+            </button>)}
+          </div>}
           {onlyCompatible && !activeActionId ? (
             <p className="sentence-bank__empty" role="status">Elige un verbo para ver sus complementos.</p>
           ) : visibleComplements.length ? (
@@ -281,8 +312,9 @@ export function SentenceBuilderPlayer({
         </section>
       </div>
       <footer className="sentence-workspace__footer">
-        <button className="button button--compact" type="button" disabled={!selected.length} onClick={removeLast}>Quitar última</button>
+        <button className="button button--compact" type="button" disabled={!selected.some(Boolean)} onClick={removeLast}>Quitar última</button>
         <button className="button button--compact" type="button" aria-pressed={showLabels} onClick={() => setShowLabels((current) => !current)}>Palabras: {showLabels ? 'visibles' : 'ocultas'}</button>
+        {editingIndex !== undefined && <button className="button button--compact" type="button" onClick={() => setEditingIndex(undefined)}>Cancelar cambio</button>}
         {complete && <>
           <AudioButton label="Escuchar frase" ariaLabel="Escuchar la frase completa" onClick={playSentence} />
           <button className="button button--primary button--compact" type="button" onClick={nextRound}>{round === settings.roundCount ? 'Terminar sesión' : 'Siguiente frase'}</button>

@@ -603,3 +603,11 @@ h1, h2, p { margin-top: 0; }
 .sentence-bank__filter { display: flex; align-items: center; gap: 7px; min-height: 40px; margin: -4px 0 8px; font-family: system-ui, sans-serif; font-size: .85rem; cursor: pointer; }
 .sentence-bank__filter input { width: 20px; height: 20px; margin: 0; flex-shrink: 0; accent-color: #196b5b; }
 .sentence-bank__empty { padding: 20px; border: 1px dashed #9ec8ef; border-radius: 8px; font-family: system-ui, sans-serif; color: #576778; background: #ffffff80; }
+
+.sentence-board__slot { position: relative; }
+.sentence-board__edit { position: absolute; inset: 0; width: 100%; height: 100%; border: 2px solid transparent; border-radius: inherit; background: transparent; cursor: pointer; }
+.sentence-board__edit:hover { border-color: #3277ac; }
+.sentence-board__edit:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.sentence-bank__categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.sentence-bank__categories button { min-height: 40px; padding: 6px 12px; border: 1px solid #9ec8ef; border-radius: 8px; background: white; color: #25364a; font-family: system-ui, sans-serif; font-size: .85rem; cursor: pointer; }
+.sentence-bank__categories button[aria-pressed="true"] { color: white; border-color: #196b5b; background: #196b5b; }

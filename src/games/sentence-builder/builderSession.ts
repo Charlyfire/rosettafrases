@@ -37,3 +37,44 @@ export function builderChoices(pictograms: Pictogram[], compatibility: ActionCom
     rules,
   }
 }
+
+export type BuilderSelection = Array<Pictogram | undefined>
+
+// Keep independent slots when a word changes; clear only invalid dependent choices.
+export function reconcileBuilderSelection(selection: BuilderSelection, roles: SentencePart[], rules: ActionCompatibility[]): BuilderSelection {
+  const result = [...selection]
+  const subjects = new Set<string>()
+  let subject: Pictogram | undefined
+  let action: ActionCompatibility | undefined
+  let complements = new Set<string>()
+  roles.forEach((role, index) => {
+    const item = result[index]
+    if (role === 'subject') {
+      subject = item && !subjects.has(item.id) ? item : undefined
+      result[index] = subject
+      if (subject) subjects.add(subject.id)
+      action = undefined
+      complements = new Set()
+    } else if (role === 'action') {
+      const subjectId = subject?.id
+      action = subjectId && item ? rules.find((rule) => rule.actionId === item.id &&
+        (!rule.allowedSubjectIds || rule.allowedSubjectIds.includes(subjectId))) : undefined
+      if (!action) result[index] = undefined
+    } else if (role === 'complement' && item) {
+      if (!action?.allowedComplementIds.includes(item.id) || complements.has(item.id)) result[index] = undefined
+      else complements.add(item.id)
+    }
+  })
+  return result
+}
+
+export const complementCategoryLabels = {
+  all: 'Todos', food: 'Alimentos', drink: 'Bebidas', objects: 'Objetos', other: 'Otros',
+} as const
+export type ComplementCategory = keyof typeof complementCategoryLabels
+export function complementCategory(item: Pictogram): Exclude<ComplementCategory, 'all'> {
+  if (item.categories.includes('drink')) return 'drink'
+  if (item.categories.includes('food')) return 'food'
+  if (item.categories.includes('toy') || item.categories.includes('noun')) return 'objects'
+  return 'other'
+}

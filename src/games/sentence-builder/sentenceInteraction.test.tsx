@@ -84,6 +84,68 @@ describe('tarjetas y lectura de oraciones', () => {
     expect(screen.getByRole('button', { name: 'Escuchar la frase completa' })).toBeTruthy()
   })
 
+  it('permite sustituir una tarjeta intermedia y cancelar el cambio sin borrar las demás', () => {
+    const extra: Pictogram = { ...parts[2], id: 'fruta', label: 'fruta' }
+    const view = render(<SentenceBuilderPlayer pictograms={[...parts, extra]} audioResources={resources} sentences={[]} compatibility={[{ actionId: 'come', allowedComplementIds: ['arroz', 'pan', 'fruta'] }]} settings={{ subjectCount: 1, complementCount: 2, roundCount: 1 }} onExit={exit} />)
+    chooseAll()
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar complemento: arroz' }))
+    expect((screen.getByRole('button', { name: 'pan' }) as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'fruta' }))
+    expect(view.container.querySelectorAll('.sentence-board img')).toHaveLength(6)
+    expect(screen.getByRole('button', { name: 'Cambiar complemento: fruta' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Cambiar complemento: pan' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar acción: come' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar cambio' }))
+    expect(screen.getByRole('button', { name: 'Escuchar la frase completa' })).toBeTruthy()
+    expect(view.container.querySelectorAll('.sentence-board img')).toHaveLength(6)
+    expect(audio.play).not.toHaveBeenCalled()
+  })
+
+  it('al cambiar el verbo solo vacía complementos incompatibles y permite reparar los huecos', () => {
+    const extra: Pictogram[] = [
+      { ...parts[1], id: 'corta', label: 'corta' },
+      { ...parts[2], id: 'fruta', label: 'fruta' },
+    ]
+    const view = render(<SentenceBuilderPlayer pictograms={[...parts, ...extra]} audioResources={resources} sentences={[]} compatibility={[
+      { actionId: 'come', allowedComplementIds: ['arroz', 'pan'] },
+      { actionId: 'corta', allowedComplementIds: ['pan', 'fruta'] },
+    ]} settings={{ subjectCount: 1, complementCount: 2, roundCount: 1 }} onExit={exit} />)
+    chooseAll()
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar acción: come' }))
+    fireEvent.click(screen.getByRole('button', { name: 'corta' }))
+    expect(view.container.querySelectorAll('.sentence-board img')).toHaveLength(5)
+    expect(screen.getByRole('button', { name: 'Cambiar complemento: pan' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Cambiar final: punto' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Escuchar la frase completa' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'fruta' }))
+    expect(screen.getByRole('button', { name: 'Escuchar la frase completa' })).toBeTruthy()
+    expect(view.container.querySelectorAll('.sentence-board img')).toHaveLength(6)
+  })
+
+  it('filtra por categoría respetando el verbo, restablece la categoría al cambiarlo y no coloca al escuchar', () => {
+    const food: Pictogram = { ...parts[2], categories: ['complement', 'food'] }
+    const water: Pictogram = { ...parts[2], id: 'agua', label: 'agua', categories: ['complement', 'food', 'drink'] }
+    const toy: Pictogram = { ...parts[2], id: 'juguete', label: 'juguete', categories: ['complement', 'toy'] }
+    const buy: Pictogram = { ...parts[1], id: 'compra', label: 'compra' }
+    const view = render(<SentenceBuilderPlayer pictograms={[...parts.filter(({ id }) => id !== 'arroz'), food, water, toy, buy]} audioResources={resources} sentences={[]} compatibility={[
+      { actionId: 'come', allowedComplementIds: ['arroz', 'pan'] },
+      { actionId: 'compra', allowedComplementIds: ['arroz', 'pan', 'agua', 'juguete'] },
+    ]} settings={{ subjectCount: 1, complementCount: 1, roundCount: 1 }} onExit={exit} />)
+    for (const name of ['papa', 'compra']) fireEvent.click(screen.getByRole('button', { name }))
+    fireEvent.click(screen.getByRole('button', { name: 'Bebidas' }))
+    expect(screen.queryByRole('button', { name: 'arroz' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'agua' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Escuchar agua' }))
+    expect(view.container.querySelectorAll('.sentence-board img')).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: 'Objetos' }))
+    expect(screen.getByRole('button', { name: 'juguete' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar acción: compra' }))
+    fireEvent.click(screen.getByRole('button', { name: 'come' }))
+    expect(screen.queryByRole('button', { name: 'agua' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'juguete' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'arroz' })).toBeTruthy()
+  })
+
   it('lee el MP3 completo sin añadir el audio de punto', () => {
     render(<SentenceBuilderPlayer pictograms={parts} audioResources={resources} sentences={[{ ...sentence, audioId: 'full' }]} compatibility={[{ actionId: 'come', allowedComplementIds: ['arroz', 'pan'] }]} settings={{ subjectCount: 1, complementCount: 2, roundCount: 1 }} onExit={exit} />)
     chooseAll()

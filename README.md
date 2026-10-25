@@ -132,6 +132,17 @@ con las opciones incompatibles desactivadas. El filtro se actualiza al cambiar d
 verbo o pasar al segundo sujeto, y vuelve a la primera página. Los verbos sin
 complementos, como «corre», se trabajan eligiendo cero complementos en la configuración.
 
+Para corregir una oración basta con tocar cualquier tarjeta colocada en la plancha
+y elegir su sustituta en el banco. **Cancelar cambio** conserva la tarjeta original.
+El resto de la oración se mantiene: si se cambia el verbo o el sujeto, únicamente
+se vacían las elecciones que hayan dejado de ser compatibles. Los huecos se rellenan
+en orden sin tener que volver a colocar las demás piezas, la «y» ni el punto.
+
+Los complementos se organizan en **Alimentos**, **Bebidas**, **Objetos** y, cuando
+hay contenido sin esas etiquetas, **Otros**. **Todos** vuelve al banco completo.
+Las categorías respetan el filtro del verbo y muestran solo los grupos que tienen
+contenido disponible; la navegación vuelve a la primera página al cambiar de categoría.
+
 El botón **Escuchar frase** utiliza el audio completo cuando la combinación tiene
 uno registrado. En las demás combinaciones reproduce los MP3 de las palabras con
 una transición compacta que recorta parte del silencio final de cada archivo, sin
