@@ -12,7 +12,7 @@ import type { ActionCompatibility, SentenceDefinition } from '../../domain/sente
 import { useAudioPlayer } from '../../hooks/useAudioPlayer'
 import { sentenceLayout, reconcileSelection, type BuilderSelection } from '../sentences/sentenceStructure'
 import type { SentencePart } from '../dictation/dictationRounds'
-import { sentenceWords } from '../../utils/sentenceAudio'
+import { sentenceWords, sentencePauses, formatSentence } from '../../utils/sentenceAudio'
 import { findBuiltSentence } from './sentenceBuilderOptions'
 
 interface SentenceBuilderPlayerProps {
@@ -61,7 +61,7 @@ export function SentenceBuilderPlayer({
   const options = activeRole === 'subject' ? bank.subjects
     : activeRole === 'action' ? bank.actions
       : activeRole === 'complement' ? bank.complements
-        : pictograms.filter(({ id }) => id === (activeRole === 'conjunction' ? 'y' : activeRole === 'punctuation' ? 'punto' : ''))
+        : pictograms.filter(({ id }) => id === (activeRole === 'conjunction' ? 'y' : activeRole === 'comma' ? 'coma' : activeRole === 'punctuation' ? 'punto' : ''))
 
   const isSelectable = (pictogram: Pictogram, role: SentencePart = activeRole ?? 'punctuation') =>
     !complete && !finished && role === activeRole && (
@@ -168,17 +168,18 @@ export function SentenceBuilderPlayer({
       const file = audioFileFor(pictogram)
       return file ? [file] : []
     })
-    if (files.length === spokenParts.length) playCompactSequence(files)
+    if (files.length === spokenParts.length) {
+      const parts = selected.filter((item): item is Pictogram => Boolean(item))
+      if (parts.some(({ id }) => id === 'coma')) playCompactSequence(files, 320, sentencePauses(parts))
+      else playCompactSequence(files)
+    }
     // Missing recordings are shown explicitly; never read a singular verb in their place.
   }
 
   const missingWords = sentenceWords(selected.filter((item): item is Pictogram => Boolean(item))).filter((item) => !audioFileFor(item))
   const slots: SentenceBoardSlot[] = roleSequence.map((role, index) => ({ role, pictogram: selected[index] }))
 
-  const writtenWords = selected
-    .filter((item, index): item is Pictogram => Boolean(item) && roleSequence[index] !== 'punctuation')
-    .map(({ label }) => label)
-  const writtenSentence = `${writtenWords.join(' ')}.`
+  const writtenSentence = formatSentence(selected.filter((item): item is Pictogram => Boolean(item)))
 
   const stageTitle = activeRole === 'subject'
     ? 'Elige un sujeto'
@@ -190,6 +191,8 @@ export function SentenceBuilderPlayer({
           : 'Elige un complemento'
         : activeRole === 'conjunction'
           ? 'Coloca la y'
+          : activeRole === 'comma'
+            ? 'Coloca la coma'
           : activeRole === 'punctuation'
             ? 'Coloca el punto'
         : 'Oración construida'
@@ -200,7 +203,7 @@ export function SentenceBuilderPlayer({
       pictogram={pictogram}
       showLabel={showLabels}
       disabled={!isSelectable(pictogram, role)}
-      onListen={() => play(audioFileFor(pictogram))}
+      onListen={pictogram.id === 'coma' ? undefined : () => play(audioFileFor(pictogram))}
       listenDisabled={!audioFileFor(pictogram)}
       selected={selected.some((item) => item?.id === pictogram.id)}
       onSelect={() => {
@@ -291,7 +294,7 @@ export function SentenceBuilderPlayer({
         </section>}
         <section className="sentence-bank sentence-bank--signs" aria-label="Signos">
           <h2>Signos</h2>
-          <div className="sentence-bank__grid">{pictograms.filter(({ id }) => id === 'y' || id === 'punto').map((item) => renderOption(item, item.id === 'y' ? 'conjunction' : 'punctuation'))}</div>
+          <div className="sentence-bank__grid">{pictograms.filter(({ id }) => id === 'y' || id === 'punto' || id === 'coma').map((item) => renderOption(item, item.id === 'y' ? 'conjunction' : item.id === 'coma' ? 'comma' : 'punctuation'))}</div>
         </section>
       </div>
       <footer className="sentence-workspace__footer">

@@ -17,7 +17,7 @@ export function buildSentenceGameRounds(sentences: SentenceDefinition[], pictogr
     }
     const distractors = plan.parts.flatMap((part, index) => {
       const role = plan.roles[index]
-      if (role === 'conjunction' || role === 'punctuation') return []
+      if (role === 'conjunction' || role === 'comma' || role === 'punctuation') return []
       return pictograms.filter((item) => item.id !== part.id && (item.categories.includes(role) || item.grammatical?.role?.includes(role)))
         .slice(0, 1).map((item) => role === 'action' ? actionForSubjects(item, settings.subjectCount) : item)
     })

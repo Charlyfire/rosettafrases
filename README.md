@@ -111,6 +111,11 @@ frase** comparten el menú «Prepara las oraciones» con tres elecciones:
    cada una con su verbo y sus complementos. Este control no determina el número
    de actividades de la sesión.
 
+Las enumeraciones usan coma entre los primeros complementos y «y» antes del último:
+«Mamá come verduras, pan y fruta». Con dos complementos se mantiene «pan y fruta».
+La coma es una tarjeta que coloca el alumno; al leer la oración produce una pausa
+breve, sin pronunciar «coma». Las uniones entre sujetos y entre frases conservan «y».
+
 Las sesiones ofrecen hasta cinco actividades. El alumno coloca cada «y» y un único
 punto final. El punto no se pronuncia al leer la oración. Las opciones de escenas
 usan el mismo menú, pero solo habilitan estructuras realmente representadas por

@@ -6,7 +6,7 @@ import { SentenceBoardViewport } from '../../components/SentenceBoardViewport'
 import { resolveAssetUrl } from '../../content/contentRepository'
 import type { AudioResource, Pictogram } from '../../domain/content'
 import { positiveFeedback, retryAudioFile, wrongFeedbackAudioFile } from '../recognition/recognitionAudio'
-import { sentenceWords } from '../../utils/sentenceAudio'
+import { sentenceWords, sentencePauses } from '../../utils/sentenceAudio'
 import { useAudioPlayer } from '../../hooks/useAudioPlayer'
 import type { DictationRound, SentencePart } from './dictationRounds'
 
@@ -23,6 +23,7 @@ const roleLabels: Record<SentencePart, string> = {
   action: 'Acción',
   complement: 'Complemento',
   conjunction: 'Conjunción',
+  comma: 'Coma',
   punctuation: 'Final',
 }
 
@@ -71,8 +72,9 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
     if (spokenAudioFiles.length !== spokenParts.length) {
       return
     }
-    playCompactSequence(spokenAudioFiles)
-  }, [playCompactSequence, playFile, spokenParts.length, sentenceAudio?.file, spokenAudioFiles])
+    if (round.parts.some(({ id }) => id === 'coma')) playCompactSequence(spokenAudioFiles, 320, sentencePauses(round.parts))
+    else playCompactSequence(spokenAudioFiles)
+  }, [playCompactSequence, playFile, spokenParts.length, sentenceAudio?.file, spokenAudioFiles, round])
 
   useEffect(() => {
     if (audioAutoplay && step && !sentenceComplete && !finished) playPrompt()
@@ -175,7 +177,7 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
 
       {!sentenceComplete ? (
         <>
-          {targetAudio ? <AudioButton className="dictation-audio-button" label="Escuchar" ariaLabel="Escuchar palabra otra vez" onClick={playPrompt} /> : <p className="teacher-oral-prompt">Audio plural pendiente: «{target.label}». Dictado oral del docente.</p>}
+          {targetAudio ? <AudioButton className="dictation-audio-button" label="Escuchar" ariaLabel="Escuchar palabra otra vez" onClick={playPrompt} /> : <p className="teacher-oral-prompt">{step.role === 'comma' ? 'Coloca la coma.' : `Audio plural pendiente: «${target.label}». Dictado oral del docente.`}</p>}
           <section className={`dictation-options dictation-options--${step.options.length}`} aria-label={`Elige ${roleLabels[step.role].toLowerCase()}`}>
             {step.options.map((pictogram) => (
               <div className="pictogram-card" key={`${round.id}-${stepIndex}-${pictogram.id}`}>

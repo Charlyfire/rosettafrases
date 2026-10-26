@@ -1,7 +1,7 @@
 import type { SentenceBuilderSettings } from '../../domain/activity'
 import type { Pictogram } from '../../domain/content'
 import type { ActionCompatibility, SentenceDefinition } from '../../domain/sentence'
-import { sentenceLayout } from './sentenceStructure'
+import { sentenceLayout, commaPictogram } from './sentenceStructure'
 import { builderChoices } from '../sentence-builder/builderSession'
 import { rotate } from '../../utils/collections'
 
@@ -17,7 +17,7 @@ export interface SentencePlan {
 export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: Pictogram[], compatibility: ActionCompatibility[], settings: SentenceBuilderSettings, scenesOnly = false): SentencePlan[] {
   if (scenesOnly && (settings.subjectCount !== 1 || settings.clauseCount !== 1)) return []
   const bank = builderChoices(pictograms, compatibility, settings)
-  const byId = new Map(pictograms.map((item) => [item.id, item]))
+  const byId = new Map([...pictograms, commaPictogram].map((item) => [item.id, item]))
   const actions = new Map(bank.actions.map((action) => [action.id, action]))
   const templates = sentences.filter((sentence) => {
     const rule = bank.rules.find(({ actionId }) => actionId === sentence.actionId)
@@ -61,7 +61,7 @@ export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: 
       if (role === 'subject') return subjects[clause][subjectIndices[clause]++]
       if (role === 'action') return actions.get(template.actionId)
       if (role === 'complement') return byId.get(template.complementIds[complementIndices[clause]++])
-      return byId.get(role === 'conjunction' ? 'y' : 'punto')
+      return byId.get(role === 'conjunction' ? 'y' : role === 'comma' ? 'coma' : 'punto')
     })
     if (!parts.every(Boolean)) return undefined
     const single = settings.subjectCount === 1 && settings.clauseCount === 1

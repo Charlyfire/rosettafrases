@@ -628,3 +628,4 @@ h1, h2, p { margin-top: 0; }
 }
 .builder-config > .config-help { grid-column: 1; }
 .sentence-workspace .sentence-board { width: max-content; min-width: 100%; }
+.sentence-workspace .sentence-board__slot--comma { flex: 0 0 48px; min-width: 48px; height: 80px; }

@@ -56,6 +56,7 @@
     { "id": "cuentos", "label": "cuentos", "image": "images/cuentos.png", "audioIds": ["word-cuentos"], "categories": ["noun", "complement"], "tags": [], "availableFromUnit": 1, "grammatical": { "role": ["complement"], "number": "plural" } },
     { "id": "juguetes", "label": "juguetes", "image": "images/juguetes.png", "audioIds": ["word-juguetes"], "categories": ["noun", "toy", "complement"], "tags": [], "availableFromUnit": 1, "grammatical": { "role": ["complement"], "number": "plural" } },
     { "id": "y", "label": "y", "image": "images/y.png", "audioIds": ["word-y"], "categories": ["conjunction"], "tags": [], "availableFromUnit": 1, "grammatical": { "role": ["conjunction"] } },
+    { "id": "coma", "label": ",", "image": "images/coma.svg", "audioIds": [], "categories": ["punctuation"], "tags": [], "availableFromUnit": 1, "grammatical": { "role": ["punctuation"] } },
     { "id": "punto", "label": "punto", "image": "images/punto.png", "audioIds": ["word-punto"], "categories": ["punctuation"], "tags": [], "availableFromUnit": 1, "grammatical": { "role": ["punctuation"] } }
   ],
   "audio": [

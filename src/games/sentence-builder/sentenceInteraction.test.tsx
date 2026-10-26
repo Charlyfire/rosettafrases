@@ -11,7 +11,7 @@ const audio = vi.hoisted(() => ({ audioError: false, play: vi.fn(), playCompactS
 vi.mock('../../hooks/useAudioPlayer', () => ({ useAudioPlayer: () => audio }))
 const roles: SentencePart[] = ['subject', 'action', 'complement', 'conjunction', 'complement', 'punctuation']
 const ids = ['papa', 'come', 'arroz', 'y', 'pan', 'punto']
-const parts: Pictogram[] = ids.map((id, index) => ({ id, label: id, image: `${id}.png`, audioIds: [id], categories: [roles[index]], tags: [], availableFromUnit: 1 }))
+const parts: Pictogram[] = ids.map((id, index) => ({ id, label: id, image: `${id}.png`, audioIds: [id], categories: [roles[index] === 'comma' ? 'punctuation' : roles[index]], tags: [], availableFromUnit: 1 }))
 const resources: AudioResource[] = [...ids.map((id) => ({ id, file: `${id}.mp3`, kind: 'word' as const })), { id: 'full', file: 'full.mp3', kind: 'sentence' }]
 const sentence = { id: 'sentence', subjectId: 'papa', actionId: 'come', complementIds: ['arroz', 'pan'], availableFromUnit: 1 }
 const spokenFiles = ids.filter((id) => id !== 'punto').map((id) => `${id}.mp3`)

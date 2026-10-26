@@ -7,7 +7,7 @@ import { PictogramOption } from '../../components/PictogramOption'
 import { type SentenceBoardSlot } from '../../components/SentenceStructureBoard'
 import { resolveAssetUrl } from '../../content/contentRepository'
 import type { AudioResource, Pictogram } from '../../domain/content'
-import { sentenceWords } from '../../utils/sentenceAudio'
+import { sentenceWords, sentencePauses, formatSentence } from '../../utils/sentenceAudio'
 import { useAudioPlayer } from '../../hooks/useAudioPlayer'
 import { positiveFeedback, retryAudioFile, wrongFeedbackAudioFile } from '../recognition/recognitionAudio'
 import type { SentenceGameMode, SentenceGameRound } from './sentenceGameRounds'
@@ -38,7 +38,10 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
 
   const playSentence = useCallback(() => {
     if (sentenceAudio) play(sentenceAudio)
-    else if (mode !== 'complete-dictation' && round && partAudioFiles.length === spokenParts.length) playCompactSequence(partAudioFiles)
+    else if (mode !== 'complete-dictation' && round && partAudioFiles.length === spokenParts.length) {
+      if (round.parts.some(({ id }) => id === 'coma')) playCompactSequence(partAudioFiles, 320, sentencePauses(round.parts))
+      else playCompactSequence(partAudioFiles)
+    }
   }, [mode, partAudioFiles, play, playCompactSequence, round, sentenceAudio, spokenParts.length])
 
   useEffect(() => {
@@ -72,10 +75,10 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
 
   if (!round) return <main className="screen"><ActivityHeader title={titles[mode]} onBack={onExit} /><section className="completion-panel"><p>Actividad terminada</p><button className="button button--large" onClick={onExit}>Volver a configurar</button></section></main>
   if (mode === 'complete-dictation' && !sentenceAudio && !oralReady) {
-    const teacherWords = round.parts.filter(({ id }) => id !== 'punto').map(({ label }) => label).join(' ')
+    const teacherWords = formatSentence(round.parts)
     return <main className="screen sentence-game-screen teacher-oral-screen">
       <ActivityHeader title="Dictado completo" subtitle={`Actividad ${roundIndex + 1} de ${rounds.length}`} onBack={onExit} />
-      <section className="teacher-oral-card"><span>Solo para el docente</span><p>{teacherWords}.</p><button className="button button--primary button--large" onClick={() => setOralReady(true)}>Ocultar e iniciar</button></section>
+      <section className="teacher-oral-card"><span>Solo para el docente</span><p>{teacherWords}</p><button className="button button--primary button--large" onClick={() => setOralReady(true)}>Ocultar e iniciar</button></section>
     </main>
   }
   const roles = round.roles
@@ -100,7 +103,7 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
       : <p className="teacher-oral-prompt">Dictado oral del docente</p>)}
     <SentenceBoardViewport slots={slots} activeIndex={complete ? undefined : selected.length} onDropPictogram={complete ? undefined : choose} showLabels={showLabels} />
     {!complete && <section className={`sentence-game-options sentence-game-options--${Math.min(remaining.length, 8)}`} aria-label="Pictogramas disponibles">
-      {remaining.map(({ item, key }) => <PictogramOption key={`${round.id}-${key}`} pictogram={item} showLabel={showLabels} onListen={() => play(audioFileFor(item))} listenDisabled={!audioFileFor(item)} onSelect={() => choose(item.id)} draggable onDragStart={(event: DragEvent<HTMLButtonElement>) => event.dataTransfer.setData('text/rosetta-pictogram', item.id)} />)}
+      {remaining.map(({ item, key }) => <PictogramOption key={`${round.id}-${key}`} pictogram={item} showLabel={showLabels} onListen={item.id === 'coma' ? undefined : () => play(audioFileFor(item))} listenDisabled={!audioFileFor(item)} onSelect={() => choose(item.id)} draggable onDragStart={(event: DragEvent<HTMLButtonElement>) => event.dataTransfer.setData('text/rosetta-pictogram', item.id)} />)}
     </section>}
     {complete && <nav className="game-controls"><button className="button" onClick={() => { setSelected([]); setFeedback(undefined) }}>Repetir</button>{(sentenceAudio || (mode !== 'complete-dictation' && partAudioFiles.length === spokenParts.length)) && <AudioButton label="Leer frase" ariaLabel="Leer la frase completa" onClick={playSentence} />}<button className="button button--primary" onClick={() => setRoundIndex((value) => value + 1)}>Siguiente actividad</button></nav>}
     {complete && missingWords.length > 0 && <p className="teacher-oral-prompt">Audio plural pendiente: {missingWords.map(({ label }) => `«${label}»`).join(', ')}. Lectura del docente.</p>}

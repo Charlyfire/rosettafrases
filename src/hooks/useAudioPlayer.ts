@@ -43,7 +43,7 @@ export function useAudioPlayer() {
     else playAt(0)
   }, [play])
 
-  const playCompactSequence = useCallback((files: string[], tailTrimMs = 320) => {
+  const playCompactSequence = useCallback((files: string[], tailTrimMs = 320, pausesAfter: Record<number, number> = {}) => {
     stop()
     const run = sequenceRunRef.current
     const playAt = (index: number) => {
@@ -58,7 +58,11 @@ export function useAudioPlayer() {
         if (advanced || run !== sequenceRunRef.current) return
         advanced = true
         window.clearTimeout(sequenceTimerRef.current)
-        if (index < files.length - 1) playAt(index + 1)
+        if (index < files.length - 1) {
+          const pause = pausesAfter[index] ?? 0
+          if (pause) sequenceTimerRef.current = window.setTimeout(() => playAt(index + 1), pause)
+          else playAt(index + 1)
+        }
       }
       audio.addEventListener('loadedmetadata', () => {
         if (index >= files.length - 1 || !Number.isFinite(audio.duration)) return

@@ -18,7 +18,7 @@ export function sentenceLayout(settings: Pick<SentenceBuilderSettings, 'subjectC
     }
     slots.push({ role: 'action', clause })
     for (let complement = 0; complement < settings.complementCount; complement += 1) {
-      if (complement) slots.push({ role: 'conjunction', clause })
+      if (complement) slots.push({ role: complement === settings.complementCount - 1 ? 'conjunction' : 'comma', clause })
       slots.push({ role: 'complement', clause })
     }
   }
@@ -71,4 +71,9 @@ export function reconcileSelection(selection: BuilderSelection, slots: SentenceS
     })
   }
   return result
+}
+
+export const commaPictogram: Pictogram = {
+  id: 'coma', label: ',', image: 'images/coma.svg', audioIds: [], categories: ['punctuation'],
+  tags: [], availableFromUnit: 1, grammatical: { role: ['punctuation'] },
 }

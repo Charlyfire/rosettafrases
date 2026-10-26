@@ -22,6 +22,7 @@ const roleLabels: Record<SentencePart, string> = {
   action: 'Acción',
   complement: 'Complemento',
   conjunction: 'Conjunción',
+  comma: 'Coma',
   punctuation: 'Final',
 }
 
