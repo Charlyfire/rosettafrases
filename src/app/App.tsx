@@ -199,7 +199,7 @@ export function App() {
 
   if (view === 'complete-dictation-config' || view === 'sentence-order-config' || view === 'scene-sentence-config') {
     const mode: SentenceGameMode = view === 'complete-dictation-config' ? 'complete-dictation' : view === 'sentence-order-config' ? 'sentence-order' : 'scene-sentence'
-    return <SentenceGameConfigScreen mode={mode} pictograms={data.content.pictograms} sentences={data.sentences} onBack={() => setView('home')} onStart={(nextSettings) => {
+    return <SentenceGameConfigScreen mode={mode} pictograms={data.content.pictograms} sentences={data.sentences} compatibility={data.actionCompatibility} onBack={() => setView('home')} onStart={(nextSettings) => {
       setSentenceGameSettings(nextSettings)
       setView(mode === 'complete-dictation' ? 'complete-dictation-player' : mode === 'sentence-order' ? 'sentence-order-player' : 'scene-sentence-player')
     }} />
@@ -210,6 +210,7 @@ export function App() {
       <DictationConfigScreen
         pictograms={data.content.pictograms}
         sentences={data.sentences}
+        compatibility={data.actionCompatibility}
         onBack={() => setView('home')}
         onStart={(nextSettings) => {
           setDictationSettings(nextSettings)
@@ -339,31 +340,19 @@ export function App() {
 
   if ((view === 'complete-dictation-player' || view === 'sentence-order-player' || view === 'scene-sentence-player') && sentenceGameSettings) {
     const mode: SentenceGameMode = view === 'complete-dictation-player' ? 'complete-dictation' : view === 'sentence-order-player' ? 'sentence-order' : 'scene-sentence'
-    const rounds = buildSentenceGameRounds(data.sentences, data.content.pictograms, sentenceGameSettings, mode)
-    return <SentenceGamePlayer mode={mode} rounds={rounds} audioResources={data.content.audio} showLabels={sentenceGameSettings.showLabels} onExit={() => setView(mode === 'complete-dictation' ? 'complete-dictation-config' : mode === 'sentence-order' ? 'sentence-order-config' : 'scene-sentence-config')} />
+    const rounds = buildSentenceGameRounds(data.sentences, data.content.pictograms, sentenceGameSettings, mode, data.actionCompatibility)
+    return <SentenceGamePlayer mode={mode} rounds={rounds} audioResources={data.content.audio} showLabels={false} onExit={() => setView(mode === 'complete-dictation' ? 'complete-dictation-config' : mode === 'sentence-order' ? 'sentence-order-config' : 'scene-sentence-config')} />
   }
 
 
   if (view === 'dictation-player' && dictationSettings) {
-    const rounds = buildDictationRounds(
-      data.sentences.filter((sentence) =>
-        sentence.complementIds.length === (
-          dictationSettings.structure === 'subject-action' ? 0 :
-            dictationSettings.structure === 'subject-action-complement' ? 1 : 2
-        ) &&
-        (dictationSettings.actionId === 'all' || sentence.actionId === dictationSettings.actionId),
-      ),
-      data.content.pictograms,
-      dictationSettings.optionCount,
-      dictationSettings.roundCount,
-      dictationSettings.order,
-    )
+    const rounds = buildDictationRounds(data.sentences, data.content.pictograms, data.actionCompatibility, dictationSettings)
     return (
       <DictationPlayer
         rounds={rounds}
         audioResources={data.content.audio}
-        audioAutoplay={dictationSettings.audioAutoplay}
-        showLabels={dictationSettings.showLabels}
+        audioAutoplay={true}
+        showLabels={false}
         onExit={() => setView('dictation-config')}
       />
     )

@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
+import { SentenceBoardViewport } from '../../components/SentenceBoardViewport'
 import { ActivityHeader } from '../../components/ActivityHeader'
 import { AudioButton } from '../../components/AudioButton'
 import { ConfettiBurst } from '../../components/ConfettiBurst'
 import { PictogramOption } from '../../components/PictogramOption'
-import { SentenceStructureBoard, type SentenceBoardSlot } from '../../components/SentenceStructureBoard'
-import { builderChoices, builderRoles, reconcileBuilderSelection, complementCategory, complementCategoryLabels, type BuilderSelection, type ComplementCategory } from './builderSession'
+import { type SentenceBoardSlot } from '../../components/SentenceStructureBoard'
+import { builderChoices, complementCategory, complementCategoryLabels, type ComplementCategory } from './builderSession'
 import type { SentenceBuilderSettings } from '../../domain/activity'
 import type { AudioResource, Pictogram } from '../../domain/content'
 import type { ActionCompatibility, SentenceDefinition } from '../../domain/sentence'
 import { useAudioPlayer } from '../../hooks/useAudioPlayer'
+import { sentenceLayout, reconcileSelection, type BuilderSelection } from '../sentences/sentenceStructure'
 import type { SentencePart } from '../dictation/dictationRounds'
 import { sentenceWords } from '../../utils/sentenceAudio'
 import { findBuiltSentence } from './sentenceBuilderOptions'
@@ -33,7 +35,6 @@ export function SentenceBuilderPlayer({
   const [selected, setSelected] = useState<BuilderSelection>([])
   const [editingIndex, setEditingIndex] = useState<number>()
   const [category, setCategory] = useState<ComplementCategory>('all')
-  const boardRef = useRef<HTMLDivElement>(null)
   const [page, setPage] = useState(0)
   const [round, setRound] = useState(1)
   const [finished, setFinished] = useState(false)
@@ -44,25 +45,18 @@ export function SentenceBuilderPlayer({
   const draggedRef = useRef(false)
   const suppressClickRef = useRef(false)
   const { audioError, play, playCompactSequence, stop } = useAudioPlayer()
-  const roleSequence = builderRoles(settings.subjectCount, settings.complementCount)
+  const layout = sentenceLayout(settings)
+  const roleSequence = layout.map(({ role }) => role)
   const selectableParts = roleSequence.length
   const firstEmpty = roleSequence.findIndex((_, index) => !selected[index])
   const stage = editingIndex ?? (firstEmpty === -1 ? selectableParts : firstEmpty)
   const complete = firstEmpty === -1 && editingIndex === undefined
   const activeRole: SentencePart | undefined = complete ? undefined : roleSequence[stage]
-  const previousIdForRole = (role: SentencePart) => {
-    for (let index = stage - 1; index >= 0; index -= 1) {
-      if (roleSequence[index] === role) return selected[index]?.id ?? ''
-      if (role === 'action' && roleSequence[index] === 'subject') break
-    }
-    return ''
-  }
-  const activeSubjectId = previousIdForRole('subject')
-  const activeActionId = activeRole === 'subject' ? '' : previousIdForRole('action')
-
-  const allowedActions = new Set(bank.rules.filter((rule) =>
-    !rule.allowedSubjectIds || rule.allowedSubjectIds.includes(activeSubjectId),
-  ).map(({ actionId }) => actionId))
+  const activeClause = layout[stage]?.clause ?? settings.clauseCount - 1
+  const selectedSubjects = selected.flatMap((item, index) => item && layout[index]?.clause === activeClause && layout[index].role === 'subject' && index !== stage ? [item] : [])
+  const activeActionId = activeRole === 'subject' ? '' : selected.find((_, index) => layout[index]?.clause === activeClause && layout[index].role === 'action')?.id ?? ''
+  const matchingRules = bank.rules.filter((rule) => selectedSubjects.every(({ id }) => !rule.allowedSubjectIds || rule.allowedSubjectIds.includes(id)))
+  const allowedActions = new Set(matchingRules.map(({ actionId }) => actionId))
   const allowedComplements = new Set(bank.rules.find(({ actionId }) => actionId === activeActionId)?.allowedComplementIds ?? [])
   const options = activeRole === 'subject' ? bank.subjects
     : activeRole === 'action' ? bank.actions
@@ -71,12 +65,11 @@ export function SentenceBuilderPlayer({
 
   const isSelectable = (pictogram: Pictogram, role: SentencePart = activeRole ?? 'punctuation') =>
     !complete && !finished && role === activeRole && (
-      role === 'subject' ? !selected.some((item, index) => index !== stage && roleSequence[index] === 'subject' && item?.id === pictogram.id)
+      role === 'subject' ? !selectedSubjects.some(({ id }) => id === pictogram.id) &&
+          matchingRules.some((rule) => !rule.allowedSubjectIds || rule.allowedSubjectIds.includes(pictogram.id))
         : role === 'action' ? allowedActions.has(pictogram.id)
         : role === 'complement' ? allowedComplements.has(pictogram.id) &&
-          !selected.some((item, index) => index !== stage && index > roleSequence.lastIndexOf('subject', stage - 1) &&
-            index < (roleSequence.indexOf('subject', stage + 1) === -1 ? selectableParts : roleSequence.indexOf('subject', stage + 1)) &&
-            roleSequence[index] === 'complement' && item?.id === pictogram.id)
+          !selected.some((item, index) => index !== stage && layout[index]?.clause === activeClause && layout[index].role === 'complement' && item?.id === pictogram.id)
           : true
     )
 
@@ -93,16 +86,6 @@ export function SentenceBuilderPlayer({
   const visibleComplements = categorizedComplements.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
   useEffect(() => { setPage(0); setCategory('all') }, [activeActionId, onlyCompatible])
   useEffect(() => stop, [stop])
-  useEffect(() => {
-    const board = boardRef.current
-    const active = board?.querySelector('.sentence-board__slot--active')
-    if (!board || !active) return
-    const bounds = board.getBoundingClientRect()
-    const target = active.getBoundingClientRect()
-    if (target.right > bounds.right) board.scrollLeft += target.right - bounds.right + 8
-    else if (target.left < bounds.left) board.scrollLeft -= bounds.left - target.left + 8
-  }, [stage, round, finished])
-
   const audioFileFor = (pictogram: Pictogram) =>
     audioResources.find((audio) => pictogram.audioIds.includes(audio.id))?.file
 
@@ -112,7 +95,7 @@ export function SentenceBuilderPlayer({
     setSelected((current) => {
       const next = [...current]
       next[stage] = pictogram
-      return reconcileBuilderSelection(next, roleSequence, bank.rules)
+      return reconcileSelection(next, layout, bank.rules)
     })
     setEditingIndex(undefined)
   }
@@ -174,7 +157,7 @@ export function SentenceBuilderPlayer({
     const complementIds = selected
       .filter((item, index): item is Pictogram => Boolean(item) && roleSequence[index] === 'complement')
       .map(({ id }) => id)
-    const sentence = settings.subjectCount === 1 ? findBuiltSentence(sentences, subject.id, action.id, complementIds) : undefined
+    const sentence = settings.subjectCount === 1 && settings.clauseCount === 1 ? findBuiltSentence(sentences, subject.id, action.id, complementIds) : undefined
     const fullAudio = audioResources.find(({ id }) => id === sentence?.audioId)?.file
     if (fullAudio) {
       play(fullAudio)
@@ -186,9 +169,10 @@ export function SentenceBuilderPlayer({
       return file ? [file] : []
     })
     if (files.length === spokenParts.length) playCompactSequence(files)
-    else play(undefined)
+    // Missing recordings are shown explicitly; never read a singular verb in their place.
   }
 
+  const missingWords = sentenceWords(selected.filter((item): item is Pictogram => Boolean(item))).filter((item) => !audioFileFor(item))
   const slots: SentenceBoardSlot[] = roleSequence.map((role, index) => ({ role, pictogram: selected[index] }))
 
   const writtenWords = selected
@@ -217,6 +201,7 @@ export function SentenceBuilderPlayer({
       showLabel={showLabels}
       disabled={!isSelectable(pictogram, role)}
       onListen={() => play(audioFileFor(pictogram))}
+      listenDisabled={!audioFileFor(pictogram)}
       selected={selected.some((item) => item?.id === pictogram.id)}
       onSelect={() => {
         if (suppressClickRef.current) {
@@ -257,18 +242,16 @@ export function SentenceBuilderPlayer({
       <header className="sentence-workspace__header">
         <button className="button button--compact" type="button" onClick={onExit}>← Volver</button>
         <h1>CONSTRUYE TU ORACIÓN.</h1>
-        <span>Frase {round} de {settings.roundCount}</span>
+        <span>Actividad {round} de {settings.roundCount}</span>
       </header>
       <ConfettiBurst active={complete} />
-      <div className={`sentence-workspace__board ${showLabels ? '' : 'sentence-workspace__board--pictures'}`} ref={boardRef}>
-        <SentenceStructureBoard
+        <SentenceBoardViewport
           slots={slots}
           activeIndex={complete ? undefined : stage}
           onDropPictogram={complete ? undefined : placeById}
           showLabels={showLabels}
           onSelectSlot={(index) => { stop(); setEditingIndex(index) }}
         />
-      </div>
       <div className="sentence-workspace__status" aria-live="polite">
         <strong>{editingIndex === undefined ? stageTitle : `Cambiar: ${selected[editingIndex]?.label}`}</strong>
         <span>{complete ? 'Toca una tarjeta de arriba para cambiarla o escucha la oración.' : editingIndex !== undefined ? 'Elige el dibujo que la sustituirá.' : 'Toca un dibujo o arrástralo a la plancha.'}</span>
@@ -316,10 +299,11 @@ export function SentenceBuilderPlayer({
         <button className="button button--compact" type="button" aria-pressed={showLabels} onClick={() => setShowLabels((current) => !current)}>Palabras: {showLabels ? 'visibles' : 'ocultas'}</button>
         {editingIndex !== undefined && <button className="button button--compact" type="button" onClick={() => setEditingIndex(undefined)}>Cancelar cambio</button>}
         {complete && <>
-          <AudioButton label="Escuchar frase" ariaLabel="Escuchar la frase completa" onClick={playSentence} />
-          <button className="button button--primary button--compact" type="button" onClick={nextRound}>{round === settings.roundCount ? 'Terminar sesión' : 'Siguiente frase'}</button>
+          <AudioButton label="Escuchar frase" ariaLabel="Escuchar la frase completa" disabled={missingWords.length > 0} onClick={playSentence} />
+          <button className="button button--primary button--compact" type="button" onClick={nextRound}>{round === settings.roundCount ? 'Terminar sesión' : 'Siguiente actividad'}</button>
         </>}
       </footer>
+      {complete && missingWords.length > 0 && <p className="teacher-oral-prompt">Audio {missingWords.some((item) => item.grammatical?.number === 'plural') ? 'plural ' : ''}pendiente: {missingWords.map(({ label }) => `«${label}»`).join(', ')}. Lectura del docente.</p>}
       {complete && showLabels && <p className="sentence-workspace__sentence">{writtenSentence}</p>}
       <p className={audioError ? 'asset-warning' : 'asset-warning asset-warning--hidden'} role="status">
         {audioError ? 'No se ha podido reproducir uno de los audios.' : '\u00A0'}

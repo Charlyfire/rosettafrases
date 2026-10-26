@@ -121,26 +121,14 @@ export type SentenceStructureType =
   | 'subject-action-complement-y-action-complement'
   | 'subject-action-complement-y-subject-action-complement'
 
-export interface SequentialDictationSettings {
-  actionId: 'all' | string
-  structure: SentenceStructureType
-  optionCount: DictationOptionCount
-  roundCount: DictationRoundCount
-  order: 'fixed' | 'random'
-  audioAutoplay: boolean
-  showLabels: boolean
-}
-
 export interface SentenceBuilderSettings {
+  /** Characters sharing the verb in each clause: Mamá y Papá beben. */
   subjectCount: 1 | 2
   complementCount: 0 | 1 | 2 | 3
+  /** Coordinated clauses within the sentence, rather than activities in a session. */
+  clauseCount: 1 | 2
   roundCount: number
 }
 
-export interface SentenceGameSettings {
-  structure: Exclude<SentenceStructureType, 'subject-action-complement-y-complement'>
-  optionCount: DictationOptionCount
-  roundCount: DictationRoundCount
-  order: 'fixed' | 'random'
-  showLabels: boolean
-}
+export type SequentialDictationSettings = SentenceBuilderSettings
+export type SentenceGameSettings = SentenceBuilderSettings

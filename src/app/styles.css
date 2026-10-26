@@ -611,3 +611,20 @@ h1, h2, p { margin-top: 0; }
 .sentence-bank__categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .sentence-bank__categories button { min-height: 40px; padding: 6px 12px; border: 1px solid #9ec8ef; border-radius: 8px; background: white; color: #25364a; font-family: system-ui, sans-serif; font-size: .85rem; cursor: pointer; }
 .sentence-bank__categories button[aria-pressed="true"] { color: white; border-color: #196b5b; background: #196b5b; }
+
+/* Sentence activities share the large board; cards retain their size as the bank shrinks. */
+.sentence-exercise-screen { display: block; height: auto; min-height: 100dvh; overflow: visible; background: #f2f7fd; }
+.sentence-exercise-screen .sentence-game-options,
+.sentence-exercise-screen .dictation-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 200px)); grid-template-rows: none; grid-auto-rows: 220px; justify-content: center; gap: 14px; width: 100%; max-width: 1400px; height: auto; margin: 18px auto; flex: none; }
+.sentence-exercise-screen .dictation-option { width: 100%; height: 100%; grid-template-rows: minmax(0, 1fr); }
+.sentence-exercise-screen .dictation-option:has(> strong) { grid-template-rows: minmax(0, 1fr) 30px; }
+.sentence-exercise-screen > .recognition-audio-button, .sentence-exercise-screen > .dictation-audio-button { display: flex; margin: 12px auto; }
+.sentence-exercise-screen .game-controls { display: flex; flex-wrap: wrap; min-height: 54px; height: auto; margin-top: 16px; }
+.sentence-exercise-screen .teacher-oral-prompt, .sentence-workspace > .teacher-oral-prompt { max-width: 900px; margin: 14px auto; text-align: center; font-family: system-ui, sans-serif; }
+.sentence-exercise-screen .dictation-result { display: flex; flex-direction: column; min-height: 150px; height: auto; margin: 20px auto; }
+.sentence-exercise-screen .dictation-result img { width: min(420px, 100%); max-height: 240px; }
+@media (max-width: 550px) {
+  .sentence-exercise-screen .sentence-game-options, .sentence-exercise-screen .dictation-options { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 200px; gap: 10px; }
+}
+.builder-config > .config-help { grid-column: 1; }
+.sentence-workspace .sentence-board { width: max-content; min-width: 100%; }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityHeader } from '../../components/ActivityHeader'
 import { AudioButton } from '../../components/AudioButton'
 import { ConfettiBurst } from '../../components/ConfettiBurst'
-import { SentenceStructureBoard } from '../../components/SentenceStructureBoard'
+import { SentenceBoardViewport } from '../../components/SentenceBoardViewport'
 import { resolveAssetUrl } from '../../content/contentRepository'
 import type { AudioResource, Pictogram } from '../../domain/content'
 import { positiveFeedback, retryAudioFile, wrongFeedbackAudioFile } from '../recognition/recognitionAudio'
@@ -61,7 +61,7 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
     const audio = audioResources.find((resource) => part.audioIds.includes(resource.id))
     return audio ? [audio.file] : []
   }), [audioResources, spokenParts])
-  const playPrompt = useCallback(() => playFile(targetAudio?.file), [playFile, targetAudio?.file])
+  const playPrompt = useCallback(() => { if (targetAudio?.file) playFile(targetAudio.file) }, [playFile, targetAudio?.file])
 
   const playSentence = useCallback(() => {
     if (sentenceAudio?.file) {
@@ -69,7 +69,6 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
       return
     }
     if (spokenAudioFiles.length !== spokenParts.length) {
-      playFile(undefined)
       return
     }
     playCompactSequence(spokenAudioFiles)
@@ -146,7 +145,7 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
 
   if (finished) {
     return (
-      <main className="screen dictation-screen">
+      <main className="screen sentence-workspace sentence-exercise-screen dictation-screen">
         <ActivityHeader title="Dictado secuenciado" onBack={onExit} />
         <section className="completion-panel">
           <p>Actividad terminada</p>
@@ -164,10 +163,10 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
   const boardSlots = round.steps.map((roundStep, index) => ({ role: roundStep.role, pictogram: selected[index] }))
 
   return (
-    <main className="screen dictation-screen">
-      <ActivityHeader title="Dictado secuenciado" subtitle={`${roundIndex + 1} de ${rounds.length}`} onBack={onExit} />
+    <main className="screen sentence-workspace sentence-exercise-screen dictation-screen">
+      <ActivityHeader title="Dictado secuenciado" subtitle={`Actividad ${roundIndex + 1} de ${rounds.length}`} onBack={onExit} />
       <ConfettiBurst active={sentenceComplete} />
-      <SentenceStructureBoard
+      <SentenceBoardViewport
         slots={boardSlots}
         activeIndex={sentenceComplete ? undefined : stepIndex}
         ariaLabel="Frase construida"
@@ -176,7 +175,7 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
 
       {!sentenceComplete ? (
         <>
-          <AudioButton className="dictation-audio-button" label="Escuchar" ariaLabel="Escuchar palabra otra vez" onClick={playPrompt} />
+          {targetAudio ? <AudioButton className="dictation-audio-button" label="Escuchar" ariaLabel="Escuchar palabra otra vez" onClick={playPrompt} /> : <p className="teacher-oral-prompt">Audio plural pendiente: «{target.label}». Dictado oral del docente.</p>}
           <section className={`dictation-options dictation-options--${step.options.length}`} aria-label={`Elige ${roleLabels[step.role].toLowerCase()}`}>
             {step.options.map((pictogram) => (
               <div className="pictogram-card" key={`${round.id}-${stepIndex}-${pictogram.id}`}>
@@ -189,7 +188,7 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
                   <span className="dictation-option__visual"><DictationImage pictogram={pictogram} /></span>
                   {showLabels && <strong>{pictogram.label}</strong>}
                 </button>
-                <AudioButton className="pictogram-card__listen" label="Escuchar" ariaLabel={`Escuchar ${pictogram.label}`} onClick={() => playFile(audioResources.find((audio) => pictogram.audioIds.includes(audio.id))?.file)} />
+                <AudioButton className="pictogram-card__listen" disabled={!audioResources.some((audio) => pictogram.audioIds.includes(audio.id))} label="Escuchar" ariaLabel={`Escuchar ${pictogram.label}`} onClick={() => playFile(audioResources.find((audio) => pictogram.audioIds.includes(audio.id))?.file)} />
               </div>
             ))}
           </section>
@@ -199,13 +198,14 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
           {round.sentence.sceneImage && <img src={resolveAssetUrl(round.sentence.sceneImage)} alt="" />}
           <p>{feedback}</p>
           <div className="button-row">
-            <button className="button" type="button" onClick={playSentence}>Repetir frase</button>
+            <button className="button" type="button" disabled={!sentenceAudio && spokenAudioFiles.length !== spokenParts.length} onClick={playSentence}>Repetir frase</button>
             <button className="button button--primary" type="button" onClick={moveToNextRound}>
-              {roundIndex === rounds.length - 1 ? 'Terminar' : 'Siguiente frase'}
+              {roundIndex === rounds.length - 1 ? 'Terminar' : 'Siguiente actividad'}
             </button>
           </div>
         </section>
       )}
+      {sentenceComplete && spokenAudioFiles.length !== spokenParts.length && <p className="teacher-oral-prompt">Audio plural pendiente. El docente puede leer la oración completa.</p>}
       <p className={audioMissing ? 'asset-warning' : 'asset-warning asset-warning--hidden'} role="status">
         {audioMissing ? 'Hay un audio pendiente o el navegador ha bloqueado su reproducción.' : ' '}
       </p>

@@ -23,7 +23,7 @@ beforeEach(() => vi.clearAllMocks())
 
 describe('tarjetas y lectura de oraciones', () => {
   it('escuchar una tarjeta no la coloca; tocar el dibujo y colocar el punto no los lee', () => {
-    const view = render(<SentenceBuilderPlayer pictograms={parts} audioResources={resources} sentences={[]} compatibility={[{ actionId: 'come', allowedComplementIds: ['arroz', 'pan'] }]} settings={{ subjectCount: 1, complementCount: 2, roundCount: 1 }} onExit={exit} />)
+    const view = render(<SentenceBuilderPlayer pictograms={parts} audioResources={resources} sentences={[]} compatibility={[{ actionId: 'come', allowedComplementIds: ['arroz', 'pan'] }]} settings={{ subjectCount: 1, complementCount: 2, clauseCount: 1, roundCount: 1 }} onExit={exit} />)
     // Previews remain available even before it is that role’s turn.
     fireEvent.click(screen.getByRole('button', { name: 'Escuchar come' }))
     expect(audio.play).toHaveBeenLastCalledWith('come.mp3')
@@ -42,7 +42,7 @@ describe('tarjetas y lectura de oraciones', () => {
     render(<SentenceBuilderPlayer pictograms={[...parts, water, cook]} audioResources={resources} sentences={[]} compatibility={[
       { actionId: 'come', allowedComplementIds: ['arroz', 'pan'] },
       { actionId: 'cocina', allowedComplementIds: ['arroz', 'agua'] },
-    ]} settings={{ subjectCount: 1, complementCount: 2, roundCount: 1 }} onExit={exit} />)
+    ]} settings={{ subjectCount: 1, complementCount: 2, clauseCount: 1, roundCount: 1 }} onExit={exit} />)
     expect(screen.queryByRole('button', { name: 'agua' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'papa' }))
     fireEvent.click(screen.getByRole('button', { name: 'come' }))
@@ -63,7 +63,7 @@ describe('tarjetas y lectura de oraciones', () => {
     render(<SentenceBuilderPlayer pictograms={[...parts, ...extra]} audioResources={resources} sentences={[]} compatibility={[
       { actionId: 'come', allowedComplementIds: ['arroz', 'pan'] },
       { actionId: 'bebe', allowedComplementIds: ['agua'] },
-    ]} settings={{ subjectCount: 2, complementCount: 1, roundCount: 1 }} onExit={exit} />)
+    ]} settings={{ subjectCount: 1, complementCount: 1, clauseCount: 2, roundCount: 1 }} onExit={exit} />)
     for (const name of ['papa', 'come', 'arroz', 'y', 'mama']) fireEvent.click(screen.getByRole('button', { name }))
     expect(screen.queryByRole('button', { name: 'arroz' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'bebe' }))
@@ -75,7 +75,7 @@ describe('tarjetas y lectura de oraciones', () => {
     const run: Pictogram = { ...parts[1], id: 'corre', label: 'corre' }
     const view = render(<SentenceBuilderPlayer pictograms={[...parts, run]} audioResources={resources} sentences={[]} compatibility={[
       { actionId: 'corre', allowWithoutComplement: true, allowedComplementIds: [] },
-    ]} settings={{ subjectCount: 1, complementCount: 0, roundCount: 1 }} onExit={exit} />)
+    ]} settings={{ subjectCount: 1, complementCount: 0, clauseCount: 1, roundCount: 1 }} onExit={exit} />)
     fireEvent.click(screen.getByRole('button', { name: 'papa' }))
     fireEvent.click(screen.getByRole('button', { name: 'corre' }))
     expect(view.container.querySelector('.sentence-bank--complements')).toBeNull()
@@ -86,7 +86,7 @@ describe('tarjetas y lectura de oraciones', () => {
 
   it('permite sustituir una tarjeta intermedia y cancelar el cambio sin borrar las demás', () => {
     const extra: Pictogram = { ...parts[2], id: 'fruta', label: 'fruta' }
-    const view = render(<SentenceBuilderPlayer pictograms={[...parts, extra]} audioResources={resources} sentences={[]} compatibility={[{ actionId: 'come', allowedComplementIds: ['arroz', 'pan', 'fruta'] }]} settings={{ subjectCount: 1, complementCount: 2, roundCount: 1 }} onExit={exit} />)
+    const view = render(<SentenceBuilderPlayer pictograms={[...parts, extra]} audioResources={resources} sentences={[]} compatibility={[{ actionId: 'come', allowedComplementIds: ['arroz', 'pan', 'fruta'] }]} settings={{ subjectCount: 1, complementCount: 2, clauseCount: 1, roundCount: 1 }} onExit={exit} />)
     chooseAll()
     fireEvent.click(screen.getByRole('button', { name: 'Cambiar complemento: arroz' }))
     expect((screen.getByRole('button', { name: 'pan' }) as HTMLButtonElement).disabled).toBe(true)
@@ -109,7 +109,7 @@ describe('tarjetas y lectura de oraciones', () => {
     const view = render(<SentenceBuilderPlayer pictograms={[...parts, ...extra]} audioResources={resources} sentences={[]} compatibility={[
       { actionId: 'come', allowedComplementIds: ['arroz', 'pan'] },
       { actionId: 'corta', allowedComplementIds: ['pan', 'fruta'] },
-    ]} settings={{ subjectCount: 1, complementCount: 2, roundCount: 1 }} onExit={exit} />)
+    ]} settings={{ subjectCount: 1, complementCount: 2, clauseCount: 1, roundCount: 1 }} onExit={exit} />)
     chooseAll()
     fireEvent.click(screen.getByRole('button', { name: 'Cambiar acción: come' }))
     fireEvent.click(screen.getByRole('button', { name: 'corta' }))
@@ -130,7 +130,7 @@ describe('tarjetas y lectura de oraciones', () => {
     const view = render(<SentenceBuilderPlayer pictograms={[...parts.filter(({ id }) => id !== 'arroz'), food, water, toy, buy]} audioResources={resources} sentences={[]} compatibility={[
       { actionId: 'come', allowedComplementIds: ['arroz', 'pan'] },
       { actionId: 'compra', allowedComplementIds: ['arroz', 'pan', 'agua', 'juguete'] },
-    ]} settings={{ subjectCount: 1, complementCount: 1, roundCount: 1 }} onExit={exit} />)
+    ]} settings={{ subjectCount: 1, complementCount: 1, clauseCount: 1, roundCount: 1 }} onExit={exit} />)
     for (const name of ['papa', 'compra']) fireEvent.click(screen.getByRole('button', { name }))
     fireEvent.click(screen.getByRole('button', { name: 'Bebidas' }))
     expect(screen.queryByRole('button', { name: 'arroz' })).toBeNull()
@@ -147,10 +147,31 @@ describe('tarjetas y lectura de oraciones', () => {
   })
 
   it('lee el MP3 completo sin añadir el audio de punto', () => {
-    render(<SentenceBuilderPlayer pictograms={parts} audioResources={resources} sentences={[{ ...sentence, audioId: 'full' }]} compatibility={[{ actionId: 'come', allowedComplementIds: ['arroz', 'pan'] }]} settings={{ subjectCount: 1, complementCount: 2, roundCount: 1 }} onExit={exit} />)
+    render(<SentenceBuilderPlayer pictograms={parts} audioResources={resources} sentences={[{ ...sentence, audioId: 'full' }]} compatibility={[{ actionId: 'come', allowedComplementIds: ['arroz', 'pan'] }]} settings={{ subjectCount: 1, complementCount: 2, clauseCount: 1, roundCount: 1 }} onExit={exit} />)
     chooseAll()
     fireEvent.click(screen.getByRole('button', { name: 'Escuchar la frase completa' }))
     expect(audio.play).toHaveBeenCalledExactlyOnceWith('full.mp3')
+    expect(audio.playCompactSequence).not.toHaveBeenCalled()
+  })
+
+  it('Ordenar conserva las tarjetas repetidas y permite colocar varias y', () => {
+    const compoundParts = [parts[0], parts[1], parts[2], parts[3], parts[0], parts[1], parts[4], parts[3], parts[2], parts[5]]
+    const compoundRoles: SentencePart[] = ['subject','action','complement','conjunction','subject','action','complement','conjunction','complement','punctuation']
+    const view = render(<SentenceGamePlayer mode="sentence-order" rounds={[{id:'repeat',sentence,parts:compoundParts,roles:compoundRoles,options:[...compoundParts].reverse()}]} audioResources={resources} showLabels={false} onExit={exit} />)
+    expect(screen.getAllByRole('button',{name:'y'})).toHaveLength(2)
+    for (const part of compoundParts) fireEvent.click(screen.getAllByRole('button',{name:part.label})[0])
+    expect(view.container.querySelectorAll('.sentence-board img')).toHaveLength(10)
+    expect(screen.getByRole('button',{name:'Leer la frase completa'})).toBeTruthy()
+  })
+
+  it('muestra el verbo plural sin leer el singular ni sustituir la grabación ausente', () => {
+    const mama: Pictogram = {...parts[0],id:'mama',label:'mama'}
+    render(<SentenceBuilderPlayer pictograms={[...parts,mama]} audioResources={resources} sentences={[]} compatibility={[{actionId:'come',allowedComplementIds:['arroz','pan']}]} settings={{subjectCount:2,complementCount:1,clauseCount:1,roundCount:1}} onExit={exit} />)
+    for (const name of ['papa','y','mama','comen','arroz','punto']) fireEvent.click(screen.getByRole('button',{name}))
+    expect(screen.getByText(/Audio plural pendiente/)).toBeTruthy()
+    expect((screen.getByRole('button',{name:'Audio pendiente: comen'}) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button',{name:'Escuchar la frase completa'}) as HTMLButtonElement).disabled).toBe(true)
+    expect(audio.play).not.toHaveBeenCalled()
     expect(audio.playCompactSequence).not.toHaveBeenCalled()
   })
 

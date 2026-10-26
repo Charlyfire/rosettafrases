@@ -1,4 +1,4 @@
-import { useState, type DragEvent, type PointerEvent } from 'react'
+import { useEffect, useState, type DragEvent, type PointerEvent } from 'react'
 import { AudioButton } from './AudioButton'
 import { resolveAssetUrl } from '../content/contentRepository'
 import type { Pictogram } from '../domain/content'
@@ -12,6 +12,7 @@ interface PictogramOptionProps {
   showLabel?: boolean
   onSelect: () => void
   onListen?: () => void
+  listenDisabled?: boolean
   draggable?: boolean
   onDragStart?: (event: DragEvent<HTMLButtonElement>) => void
   onPointerDown?: (event: PointerEvent<HTMLButtonElement>) => void
@@ -29,6 +30,7 @@ export function PictogramOption({
   showLabel = false,
   onSelect,
   onListen,
+  listenDisabled,
   draggable = false,
   onDragStart,
   onPointerDown,
@@ -37,6 +39,7 @@ export function PictogramOption({
   onPointerCancel,
 }: PictogramOptionProps) {
   const [imageMissing, setImageMissing] = useState(false)
+  useEffect(() => setImageMissing(false), [pictogram.image])
   const picture = (
     <button
       className={`recognition-option recognition-option--${state} ${showLabel ? 'recognition-option--with-label' : ''} ${unavailable ? 'recognition-option--unavailable' : ''} ${selected ? 'recognition-option--selected' : ''}`}
@@ -66,7 +69,7 @@ export function PictogramOption({
   return (
     <div className="pictogram-card">
       {picture}
-      <AudioButton className="pictogram-card__listen" label="Escuchar" ariaLabel={`Escuchar ${pictogram.label}`} onClick={onListen} />
+      <AudioButton className="pictogram-card__listen" label={listenDisabled ? 'Audio pendiente' : 'Escuchar'} ariaLabel={listenDisabled ? `Audio pendiente: ${pictogram.label}` : `Escuchar ${pictogram.label}`} disabled={listenDisabled} onClick={onListen} />
     </div>
   )
 }

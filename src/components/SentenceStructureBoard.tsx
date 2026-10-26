@@ -8,7 +8,7 @@ export interface SentenceBoardSlot {
   pictogram?: Pictogram
 }
 
-interface SentenceStructureBoardProps {
+export interface SentenceStructureBoardProps {
   slots: SentenceBoardSlot[]
   activeIndex?: number
   onDropPictogram?: (pictogramId: string) => void

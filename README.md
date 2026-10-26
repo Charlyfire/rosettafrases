@@ -101,24 +101,26 @@ estructura los requiere; nunca aparecen ya resueltos en la plancha.
 Al completar la estructura se muestra la escena proporcionada y puede repetirse el
 audio de la frase completa.
 
-La configuración permite escoger estructuras simples, dos complementos coordinados
-y dos estructuras largas: una segunda acción con su complemento o una segunda
-oración completa después de **y**. El punto final y la conjunción son pictogramas
-propios. Al leer la oración se escucha la conjunción, pero nunca la palabra «punto».
+**Construye tu oración**, **Dictado secuenciado**, **Dictado completo** y **Ordenar
+frase** comparten el menú «Prepara las oraciones» con tres elecciones:
 
-Las actividades de oración utilizan una plancha común inspirada en el material
-aportado: marca roja de inicio a la izquierda, marca verde de final a la derecha
-y una guía horizontal. **Construye tu oración** se prepara con tres elecciones: sujetos dentro de cada
-oración (1 o 2), complementos por sujeto (0 a 3) y frases de la sesión (1, 3, 5 o 10).
-Con dos sujetos se construyen dos partes coordinadas, por ejemplo «Papá come arroz
-y Mamá bebe agua». Los sujetos deben ser distintos. El alumno coloca también cada
-«y» y el punto final.
+1. **Sujetos por frase** (1 o 2): comparten un único verbo. «Mamá y Papá beben agua»
+   tiene dos sujetos y una sola frase; el verbo se muestra en plural.
+2. **Complementos por verbo** (0 a 3): «Mamá come pan y arroz» tiene dos.
+3. **Frases enlazadas** (1 o 2): «Mamá come pan y Papá bebe agua» contiene dos frases,
+   cada una con su verbo y sus complementos. Este control no determina el número
+   de actividades de la sesión.
+
+Las sesiones ofrecen hasta cinco actividades. El alumno coloca cada «y» y un único
+punto final. El punto no se pronuncia al leer la oración. Las opciones de escenas
+usan el mismo menú, pero solo habilitan estructuras realmente representadas por
+una escena registrada.
 
 La pantalla mantiene visibles los bancos de sujetos, acciones, complementos y
 signos bajo una plancha de casillas con guía rosa. Los complementos se muestran en
 páginas de 18 dibujos. Solo se pueden escoger piezas que permitan terminar la
 estructura elegida; no se repite un complemento dentro de la misma parte. Se puede
-reutilizar en la parte del segundo sujeto. Los pictogramas se incorporan mediante
+reutilizar en la segunda frase enlazada. Los pictogramas se incorporan mediante
 toque o arrastre, sin reproducir su audio. Debajo de cada dibujo hay un botón
 «Escuchar» independiente: lee la tarjeta sin colocarla ni avanzar la actividad. El control «Palabras» permite mostrar u
 ocultar los nombres. Al completar la última frase se presenta el final de sesión,
@@ -129,7 +131,7 @@ nombres cuando están ocultos. En el banco de complementos, **Ocultar complement
 incompatibles** está activado por defecto: primero se elige el verbo y después
 se muestran únicamente sus complementos. Al desactivarlo se muestra todo el banco,
 con las opciones incompatibles desactivadas. El filtro se actualiza al cambiar de
-verbo o pasar al segundo sujeto, y vuelve a la primera página. Los verbos sin
+verbo o pasar a la segunda frase, y vuelve a la primera página. Los verbos sin
 complementos, como «corre», se trabajan eligiendo cero complementos en la configuración.
 
 Para corregir una oración basta con tocar cualquier tarjeta colocada en la plancha
@@ -148,6 +150,17 @@ uno registrado. En las demás combinaciones reproduce los MP3 de las palabras co
 una transición compacta que recorta parte del silencio final de cada archivo, sin
 acelerar la voz, síntesis de voz ni servicios en línea.
 
+Los verbos plurales mantienen el mismo pictograma y usan la forma escrita correcta
+(`beben`, `comen`, etc.). No se sintetiza voz ni se reproduce la grabación singular
+en su lugar. Si falta una grabación, se muestra **Audio plural pendiente** y queda
+disponible el dictado oral del docente. Los audios necesarios y cómo incorporarlos
+están documentados en [PLURAL_AUDIO.md](PLURAL_AUDIO.md).
+
+Ordenar frase conserva una tarjeta por cada aparición de una palabra, incluidas
+varias «y» y sujetos repetidos en diferentes frases. Las opciones y las tarjetas de
+la plancha comparten tamaños amplios con los otros juegos de oración; las oraciones
+largas permiten desplazamiento horizontal y la página puede desplazarse verticalmente.
+
 Las frases válidas y sus compatibilidades están declaradas en
 `public/content/sentences.json`. Los seis personajes disponen de PNG y MP3
 individuales; los audios de las acciones y complementos también están enlazados.
@@ -160,9 +173,8 @@ se inventan complementos de persona ni expresiones que requerirían una preposic
 ausente, como «juega con…».
 
 La interfaz utiliza la fuente escolar aportada `Escolar2`, incluida en
-`public/assets/fonts/Escolar2.ttf` para que funcione también offline y sin depender
-de las fuentes instaladas en Windows. Todas las actividades incluyen un control
-docente para mostrar u ocultar las palabras escritas.
+`public/assets/fonts/Escolar2.ttf`. La configuración docente utiliza una fuente de
+lectura clara; en Construye tu oración se mantiene el control de palabras escritas.
 
 **Clasificar por vocal** utiliza el mismo banco y la progresión Rosetta. Permite
 arrastrar cada pictograma a su zona o tocar primero el dibujo y después la vocal,

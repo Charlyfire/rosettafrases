@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { builderChoices, builderRoles, complementCategory, reconcileBuilderSelection } from './builderSession'
+import { builderChoices, builderRoles, complementCategory } from './builderSession'
+import { reconcileSelection, sentenceLayout } from '../sentences/sentenceStructure'
 import type { Pictogram } from '../../domain/content'
 
 const item = (id: string, role: 'subject' | 'action' | 'complement'): Pictogram => ({
@@ -9,8 +10,7 @@ const item = (id: string, role: 'subject' | 'action' | 'complement'): Pictogram 
 describe('sesiones de construcción', () => {
   it('mantiene dos sujetos y sus complementos en cláusulas coordinadas, con un solo punto final', () => {
     expect(builderRoles(2, 2)).toEqual([
-      'subject', 'action', 'complement', 'conjunction', 'complement', 'conjunction',
-      'subject', 'action', 'complement', 'conjunction', 'complement', 'punctuation',
+      'subject', 'conjunction', 'subject', 'action', 'complement', 'conjunction', 'complement', 'punctuation',
     ])
     expect(builderRoles(1, 0)).toEqual(['subject', 'action', 'punctuation'])
   })
@@ -20,7 +20,7 @@ describe('sesiones de construcción', () => {
     const bank = builderChoices(pictograms, [
       { actionId: 'come', allowedSubjectIds: ['papa'], allowedComplementIds: ['pan', 'arroz'] },
       { actionId: 'bebe', allowedComplementIds: ['pan', 'pan', 'missing'] },
-    ], { subjectCount: 1, complementCount: 2, roundCount: 3 })
+    ], { subjectCount: 1, complementCount: 2, clauseCount: 1, roundCount: 3 })
     expect(bank.actions.map(({ id }) => id)).toEqual(['come'])
     expect(bank.subjects.map(({ id }) => id)).toEqual(['papa'])
     expect(bank.complements.map(({ id }) => id)).toEqual(['pan', 'arroz'])
@@ -35,7 +35,7 @@ describe('sesiones de construcción', () => {
   it('al sustituir un verbo preserva la otra cláusula, los signos y los complementos compatibles', () => {
     const selected = [item('papa', 'subject'), item('come', 'action'), item('arroz', 'complement'), item('y', 'complement'), item('pan', 'complement'), item('y', 'complement'), item('mama', 'subject'), item('come', 'action'), item('arroz', 'complement'), item('y', 'complement'), item('pan', 'complement'), item('punto', 'complement')]
     selected[1] = item('corta', 'action')
-    const result = reconcileBuilderSelection(selected, builderRoles(2, 2), [
+    const result = reconcileSelection(selected, sentenceLayout({ subjectCount: 1, complementCount: 2, clauseCount: 2 }), [
       { actionId: 'come', allowedComplementIds: ['arroz', 'pan'] },
       { actionId: 'corta', allowedComplementIds: ['pan', 'fruta'] },
     ])
