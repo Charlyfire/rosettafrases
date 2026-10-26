@@ -6,54 +6,30 @@ import type {
 } from '../domain/content'
 
 const DATABASE_NAME = 'rosetta-digital-content'
-const DATABASE_VERSION = 1
+const DATABASE_VERSION = 2
 const STORE_NAME = 'local-content'
 
-interface BackupFile {
-  name: string
-  type: string
-  dataUrl: string
-}
-
-interface BackupItem {
-  id: string
-  label: string
-  image: BackupFile
-  audio: BackupFile
-  categories: LocalContentRecord['categories']
-  initialSound?: LocalContentRecord['initialSound']
-  availableFromUnit: number
-  createdAt: string
-  updatedAt: string
-}
-
-interface LocalContentBackup {
-  schemaVersion: 1
-  exportedAt: string
-  items: BackupItem[]
-}
-
-const requestResult = <T,>(request: IDBRequest<T>) =>
+export const requestResult = <T,>(request: IDBRequest<T>) =>
   new Promise<T>((resolve, reject) => {
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error ?? new Error('Error de almacenamiento local.'))
   })
 
-const transactionDone = (transaction: IDBTransaction) =>
+export const transactionDone = (transaction: IDBTransaction) =>
   new Promise<void>((resolve, reject) => {
     transaction.oncomplete = () => resolve()
     transaction.onerror = () => reject(transaction.error ?? new Error('No se pudo guardar el contenido.'))
     transaction.onabort = () => reject(transaction.error ?? new Error('Se canceló el guardado.'))
   })
 
-const openDatabase = () =>
+export const openDatabase = () =>
   new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION)
     request.onupgradeneeded = () => {
       const database = request.result
-      if (!database.objectStoreNames.contains(STORE_NAME)) {
-        database.createObjectStore(STORE_NAME, { keyPath: 'id' })
-      }
+      if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME, { keyPath: 'id' })
+      if (!database.objectStoreNames.contains('local-scenes')) database.createObjectStore('local-scenes', { keyPath: 'id' })
+      if (!database.objectStoreNames.contains('local-rules')) database.createObjectStore('local-rules', { keyPath: 'actionId' })
     }
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error ?? new Error('No se pudo abrir el banco local.'))
@@ -97,6 +73,10 @@ export const saveLocalContent = async (draft: LocalContentDraft): Promise<LocalC
     : new Blob([draft.audioBlob], { type: 'audio/mpeg' })
   const record: LocalContentRecord = {
     id: draft.id ?? createLocalContentId(draft.label),
+    overrideId: draft.overrideId,
+    pluralLabel: draft.pluralLabel?.trim() || undefined,
+    pluralAudioBlob: draft.pluralAudioBlob,
+    pluralAudioFileName: draft.pluralAudioFileName,
     label: draft.label.trim(),
     imageBlob,
     imageFileName: draft.imageFileName,
@@ -130,103 +110,20 @@ export const deleteLocalContent = async (id: string) => {
   }
 }
 
-const blobToDataUrl = (blob: Blob) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
-    reader.onerror = () => reject(reader.error ?? new Error('No se pudo preparar la copia.'))
-    reader.readAsDataURL(blob)
-  })
-
-export const createLocalContentBackup = async (records: LocalContentRecord[]): Promise<Blob> => {
-  const items = await Promise.all(records.map(async (record): Promise<BackupItem> => ({
-    id: record.id,
-    label: record.label,
-    image: {
-      name: record.imageFileName,
-      type: record.imageBlob.type,
-      dataUrl: await blobToDataUrl(record.imageBlob),
-    },
-    audio: {
-      name: record.audioFileName,
-      type: record.audioBlob.type,
-      dataUrl: await blobToDataUrl(record.audioBlob),
-    },
-    categories: record.categories,
-    initialSound: record.initialSound,
-    availableFromUnit: record.availableFromUnit,
-    createdAt: record.createdAt,
-    updatedAt: record.updatedAt,
-  })))
-  const backup: LocalContentBackup = {
-    schemaVersion: 1,
-    exportedAt: new Date().toISOString(),
-    items,
-  }
-  return new Blob([JSON.stringify(backup)], { type: 'application/json' })
-}
-
-const isBackup = (value: unknown): value is LocalContentBackup => {
-  if (!value || typeof value !== 'object') return false
-  const candidate = value as Partial<LocalContentBackup>
-  return candidate.schemaVersion === 1 && Array.isArray(candidate.items)
-}
-
-const dataUrlToBlob = async (dataUrl: string) => {
-  const response = await fetch(dataUrl)
-  if (!response.ok) throw new Error('La copia contiene un archivo que no puede leerse.')
-  return response.blob()
-}
-
-export const importLocalContentBackup = async (file: File): Promise<number> => {
-  const parsed: unknown = JSON.parse(await file.text())
-  if (!isBackup(parsed)) throw new Error('El archivo no es una copia válida de Rosetta Digital.')
-
-  for (const item of parsed.items) {
-    if (
-      !item.id?.startsWith('local-') ||
-      !item.label ||
-      !item.image?.dataUrl?.startsWith('data:image/') ||
-      !item.audio?.dataUrl?.startsWith('data:audio/') ||
-      !Array.isArray(item.categories) ||
-      !Number.isInteger(item.availableFromUnit) ||
-      item.availableFromUnit < 1 ||
-      item.availableFromUnit > 10
-    ) {
-      throw new Error('La copia contiene una entrada incompleta o no válida.')
-    }
-  }
-
-  let imported = 0
-  for (const item of parsed.items) {
-    await saveLocalContent({
-      id: item.id,
-      label: item.label,
-      imageBlob: await dataUrlToBlob(item.image.dataUrl),
-      imageFileName: item.image.name,
-      audioBlob: await dataUrlToBlob(item.audio.dataUrl),
-      audioFileName: item.audio.name,
-      categories: item.categories,
-      initialSound: item.initialSound,
-      availableFromUnit: item.availableFromUnit,
-      createdAt: item.createdAt,
-    })
-    imported += 1
-  }
-  return imported
-}
-
 export const localRecordToRuntime = (record: LocalContentRecord): {
   pictogram: Pictogram
   audio: AudioResource
+  pluralAudio?: AudioResource
   objectUrls: string[]
 } => {
   const imageUrl = URL.createObjectURL(record.imageBlob)
   const audioUrl = URL.createObjectURL(record.audioBlob)
   const audioId = `word-${record.id}`
+  const pluralUrl = record.pluralAudioBlob ? URL.createObjectURL(record.pluralAudioBlob) : undefined
+  const pluralId = `${audioId}-plural`
   return {
     pictogram: {
-      id: record.id,
+      id: record.overrideId ?? record.id,
       label: record.label,
       image: imageUrl,
       audioIds: [audioId],
@@ -235,6 +132,7 @@ export const localRecordToRuntime = (record: LocalContentRecord): {
       initialSound: record.initialSound,
       availableFromUnit: record.availableFromUnit,
       source: 'local',
+      grammatical: record.categories.includes('action') && record.pluralLabel ? { role: ['action'], pluralForm: record.pluralLabel, pluralAudioIds: pluralUrl ? [pluralId] : [] } : undefined,
     },
     audio: {
       id: audioId,
@@ -242,6 +140,7 @@ export const localRecordToRuntime = (record: LocalContentRecord): {
       file: audioUrl,
       transcript: record.label,
     },
-    objectUrls: [imageUrl, audioUrl],
+    pluralAudio: pluralUrl ? { id: pluralId, kind: 'word', file: pluralUrl, transcript: record.pluralLabel } : undefined,
+    objectUrls: [imageUrl, audioUrl, ...(pluralUrl ? [pluralUrl] : [])],
   }
 }

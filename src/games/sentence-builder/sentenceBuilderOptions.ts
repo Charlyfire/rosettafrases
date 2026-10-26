@@ -42,6 +42,7 @@ export const findBuiltSentence = (
   actionId: string,
   complementIds: string[] = [],
 ) => sentences.find((sentence) =>
+  (!sentence.clauses || (sentence.clauses.length === 1 && sentence.clauses[0].subjectIds.length === 1)) &&
   sentence.subjectId === subjectId &&
   sentence.actionId === actionId &&
   sentence.complementIds.length === complementIds.length &&

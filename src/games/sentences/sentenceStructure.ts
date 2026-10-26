@@ -33,15 +33,15 @@ const plurals: Record<string, string> = {
 
 export function actionForSubjects(action: Pictogram, count: number): Pictogram {
   if (count === 1) return action
-  const plural = plurals[action.id]
+  const plural = action.grammatical?.pluralForm ?? plurals[action.id]
   if (!plural) return action
   return {
-    ...action, label: plural, audioIds: [`word-${plural}`],
+    ...action, label: plural, audioIds: action.grammatical?.pluralAudioIds ?? [`word-${plural}`],
     grammatical: { ...action.grammatical, number: 'plural', displayForm: plural },
   }
 }
 
-export const supportsPlural = (action: Pictogram) => Boolean(plurals[action.id])
+export const supportsPlural = (action: Pictogram) => Boolean(action.grammatical?.pluralForm ?? plurals[action.id])
 
 export type BuilderSelection = Array<Pictogram | undefined>
 

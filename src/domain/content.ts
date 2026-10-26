@@ -33,6 +33,8 @@ export interface Pictogram {
     role?: Array<'subject' | 'action' | 'complement' | 'conjunction' | 'punctuation'>
     lemma?: string
     displayForm?: string
+    pluralForm?: string
+    pluralAudioIds?: string[]
     gender?: 'feminine' | 'masculine'
     number?: 'singular' | 'plural'
   }
@@ -40,6 +42,10 @@ export interface Pictogram {
 
 export interface LocalContentRecord {
   id: string
+  overrideId?: string
+  pluralLabel?: string
+  pluralAudioBlob?: Blob
+  pluralAudioFileName?: string
   label: string
   imageBlob: Blob
   imageFileName: string
@@ -54,6 +60,10 @@ export interface LocalContentRecord {
 
 export interface LocalContentDraft {
   id?: string
+  overrideId?: string
+  pluralLabel?: string
+  pluralAudioBlob?: Blob
+  pluralAudioFileName?: string
   label: string
   imageBlob: Blob
   imageFileName: string

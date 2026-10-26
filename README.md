@@ -66,14 +66,28 @@ la estrategia offline y las decisiones pedagógicas pendientes.
 
 ## Añadir contenidos desde la aplicación
 
-En la pantalla inicial, abre **Banco de contenidos**. Desde allí se puede añadir,
-editar o eliminar contenido local y exportar/importar una copia de seguridad. Cada
-entrada necesita un PNG, un MP3, un nombre, al menos una categoría y una unidad de
-disponibilidad. Para que aparezca en Bits debe tener asignada una vocal inicial
-compatible con la unidad seleccionada.
+En la pantalla inicial, abre **Banco de contenidos**. Incluye tres apartados:
 
-Los contenidos locales también aparecen automáticamente en Reconocer cuando su
-unidad y sonido inicial son compatibles con la configuración elegida.
+- **Tarjetas de palabras**: nombre, PNG, MP3, categorías y unidad. Los verbos
+  admiten forma plural y su MP3 opcional para las estructuras con dos sujetos.
+- **Escenas y frases**: imagen PNG, estructura exacta de una o dos frases y audio
+  completo opcional. Se pueden seleccionar uno o dos sujetos por frase y hasta
+  tres complementos por verbo. Si no hay grabación completa se usa dictado oral.
+- **Compatibilidades**: complementos, sujetos permitidos y posibilidad de usar
+  cada verbo sin complemento. Se pueden ajustar los verbos incluidos y los nuevos.
+
+Los recursos se guardan en el navegador, no en Netlify. Guardarlos no hace un
+despliegue ni vuelve a descargar los catálogos incluidos durante esa página.
+**Exportar copia** incluye tarjetas, imágenes, audios, escenas y compatibilidades.
+**Importar copia** admite las copias antiguas, conserva los demás recursos y pide
+confirmación antes de sustituir coincidencias. Una copia inválida no se guarda
+parcialmente. Borrar datos del navegador puede eliminar el banco local: conserva
+la copia para recuperarlo o trasladarlo a otra PDI.
+
+Para usar una tarjeta en oraciones, marca su papel (Sujeto, Acción o Complemento)
+y configura las compatibilidades de su verbo. Las actividades fonológicas también
+aplican la unidad y el sonido inicial. Consulta [RESOURCE_BANK.md](RESOURCE_BANK.md)
+para el flujo completo.
 
 ## Actividades de Reconocer
 

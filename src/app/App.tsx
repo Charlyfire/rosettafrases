@@ -18,7 +18,7 @@ import type {
 } from '../domain/activity'
 import type { ContentBank, LocalContentRecord } from '../domain/content'
 import type { RosettaSequence } from '../domain/rosetta'
-import type { ActionCompatibility, SentenceDefinition } from '../domain/sentence'
+import type { ActionCompatibility, SentenceDefinition, LocalSceneRecord } from '../domain/sentence'
 import { BitsConfigScreen } from '../games/bits/BitsConfigScreen'
 import { BitsPlayer } from '../games/bits/BitsPlayer'
 import { ListenConfigScreen } from '../games/recognition/ListenConfigScreen'
@@ -77,6 +77,10 @@ type AppData = {
   sentences: SentenceDefinition[]
   actionCompatibility: ActionCompatibility[]
   localRecords: LocalContentRecord[]
+  localScenes:LocalSceneRecord[]
+  localRules:ActionCompatibility[]
+  bundledPictograms:ContentBank['pictograms']
+  baseCompatibility:ActionCompatibility[]
 }
 
 const phaseLabels: Record<LearningPhase, { title: string; description: string }> = {
@@ -149,7 +153,12 @@ export function App() {
   if (view === 'content-manager') {
     return (
       <ContentManagerScreen
-        bundledPictograms={data.content.pictograms.filter(({ source }) => source === 'bundled')}
+        bundledPictograms={data.bundledPictograms}
+        pictograms={data.content.pictograms}
+        localScenes={data.localScenes}
+        localRules={data.localRules}
+        compatibility={data.actionCompatibility}
+        baseCompatibility={data.baseCompatibility}
         localRecords={data.localRecords}
         onBack={() => setView('home')}
         onChanged={refreshData}

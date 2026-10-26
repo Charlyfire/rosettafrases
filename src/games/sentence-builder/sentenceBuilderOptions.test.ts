@@ -48,4 +48,13 @@ describe('opciones de Construye tu oración', () => {
     expect(findBuiltSentence(sentences, 'papa', 'come', ['arroz'])?.id).toBe('papa-come-arroz')
     expect(findBuiltSentence(sentences, 'papa', 'come', ['leche'])).toBeUndefined()
   })
+  it('no utiliza el audio de una escena compuesta para leer solo su primera frase', () => {
+    const recorded:SentenceDefinition = { ...sentences[1],id:'scene-compound',audioId:'compound',clauses:[
+      {subjectIds:['papa'],actionId:'come',complementIds:['arroz']},
+      {subjectIds:['mama'],actionId:'come',complementIds:['arroz']},
+    ] }
+    expect(findBuiltSentence([recorded], 'papa','come',['arroz'])).toBeUndefined()
+    expect(findBuiltSentence([{...recorded,clauses:[recorded.clauses![0]]}], 'papa','come',['arroz'])?.audioId).toBe('compound')
+  })
+
 })

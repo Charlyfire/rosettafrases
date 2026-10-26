@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { ActivityHeader } from '../components/ActivityHeader'
 import type {
   ContentCategory,
@@ -6,15 +6,22 @@ import type {
   Pictogram,
 } from '../domain/content'
 import {
-  createLocalContentBackup,
   createLocalContentId,
-  deleteLocalContent,
-  importLocalContentBackup,
-  saveLocalContent,
   slugifyContentLabel,
 } from './localContentRepository'
 
+import type { ActionCompatibility, LocalSceneRecord } from '../domain/sentence'
+import { ScenePanel } from './ScenePanel'
+import { CompatibilityPanel } from './CompatibilityPanel'
+import { useBlobUrl as useObjectUrl } from './useBlobUrl'
+import { BackupConflictError, createResourceBankBackup, importResourceBankBackup, saveBankWord, deleteBankWord, type BankContext } from './resourceBankRepository'
+
 interface ContentManagerScreenProps {
+  pictograms:Pictogram[]
+  localScenes:LocalSceneRecord[]
+  localRules:ActionCompatibility[]
+  compatibility:ActionCompatibility[]
+  baseCompatibility:ActionCompatibility[]
   bundledPictograms: Pictogram[]
   localRecords: LocalContentRecord[]
   onBack: () => void
@@ -33,20 +40,6 @@ const categoryOptions: Array<{ value: ContentCategory; label: string }> = [
   { value: 'character', label: 'Personaje' },
 ]
 
-const useObjectUrl = (blob?: Blob) => {
-  const [url, setUrl] = useState<string>()
-  useEffect(() => {
-    if (!blob) {
-      setUrl(undefined)
-      return
-    }
-    const nextUrl = URL.createObjectURL(blob)
-    setUrl(nextUrl)
-    return () => URL.revokeObjectURL(nextUrl)
-  }, [blob])
-  return url
-}
-
 function LocalContentCard({
   record,
   onEdit,
@@ -58,6 +51,7 @@ function LocalContentCard({
 }) {
   const imageUrl = useObjectUrl(record.imageBlob)
   const audioUrl = useObjectUrl(record.audioBlob)
+  const pluralUrl = useObjectUrl(record.pluralAudioBlob)
   return (
     <article className="local-content-card">
       <div className="local-content-card__image">
@@ -71,6 +65,8 @@ function LocalContentCard({
           Desde la Unidad {record.availableFromUnit}
         </p>
         {audioUrl && <audio controls preload="none" src={audioUrl} aria-label={`Audio de ${record.label}`} />}
+        {record.pluralLabel && <p>Plural: {record.pluralLabel}</p>}
+        {pluralUrl && <audio controls preload="none" src={pluralUrl} aria-label={`Audio plural de ${record.label}`} />}
         <div className="local-content-card__actions">
           <button className="button button--compact" type="button" onClick={onEdit}>Editar</button>
           <button className="button button--compact button--danger" type="button" onClick={onDelete}>Eliminar</button>
@@ -83,11 +79,12 @@ function LocalContentCard({
 interface EditorProps {
   record?: LocalContentRecord
   allPictograms: Pictogram[]
+  context:BankContext
   onCancel: () => void
   onSaved: () => Promise<void>
 }
 
-function ContentEditor({ record, allPictograms, onCancel, onSaved }: EditorProps) {
+function ContentEditor({ record, allPictograms, context, onCancel, onSaved }: EditorProps) {
   const [label, setLabel] = useState(record?.label ?? '')
   const [initialSound, setInitialSound] = useState<'' | 'a' | 'e' | 'i' | 'o' | 'u'>(
     record?.initialSound ?? '',
@@ -96,6 +93,8 @@ function ContentEditor({ record, allPictograms, onCancel, onSaved }: EditorProps
   const [categories, setCategories] = useState<ContentCategory[]>(record?.categories ?? [])
   const [imageFile, setImageFile] = useState<File>()
   const [audioFile, setAudioFile] = useState<File>()
+  const [pluralLabel,setPluralLabel] = useState(record?.pluralLabel ?? '')
+  const [pluralFile,setPluralFile] = useState<File>()
   const [error, setError] = useState<string>()
   const [saving, setSaving] = useState(false)
   const imageUrl = useObjectUrl(imageFile ?? record?.imageBlob)
@@ -129,10 +128,11 @@ function ContentEditor({ record, allPictograms, onCancel, onSaved }: EditorProps
       if (categories.length === 0) throw new Error('Selecciona al menos una categoría.')
       if (imageFile) validateFile(imageFile, 'image')
       if (audioFile) validateFile(audioFile, 'audio')
+      if (pluralFile) validateFile(pluralFile,'audio')
 
       const normalizedLabel = slugifyContentLabel(cleanLabel)
       const duplicate = allPictograms.find((item) =>
-        item.id !== record?.id && slugifyContentLabel(item.label) === normalizedLabel,
+        item.id !== (record?.overrideId ?? record?.id) && slugifyContentLabel(item.label) === normalizedLabel,
       )
       if (duplicate) throw new Error(`Ya existe un contenido llamado «${duplicate.label}».`)
 
@@ -142,8 +142,12 @@ function ContentEditor({ record, allPictograms, onCancel, onSaved }: EditorProps
       }
 
       setSaving(true)
-      await saveLocalContent({
+      await saveBankWord({
         id: newId,
+        overrideId:record?.overrideId,
+        pluralLabel:categories.includes('action') ? pluralLabel : undefined,
+        pluralAudioBlob:categories.includes('action') ? pluralFile ?? record?.pluralAudioBlob : undefined,
+        pluralAudioFileName:categories.includes('action') ? pluralFile?.name ?? record?.pluralAudioFileName : undefined,
         label: cleanLabel,
         imageBlob,
         imageFileName: imageFile?.name ?? record!.imageFileName,
@@ -153,7 +157,7 @@ function ContentEditor({ record, allPictograms, onCancel, onSaved }: EditorProps
         initialSound: initialSound || undefined,
         availableFromUnit,
         createdAt: record?.createdAt,
-      })
+      },context)
       await onSaved()
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'No se pudo guardar el contenido.')
@@ -211,16 +215,22 @@ function ContentEditor({ record, allPictograms, onCancel, onSaved }: EditorProps
               ))}
             </div>
           </fieldset>
+          <p>Para formar oraciones, marca Sujeto, Acción o Complemento. Puedes añadir también categorías como Alimento, Bebida o Personaje.</p>
 
+          {categories.includes('action') && <fieldset><legend>Forma plural del verbo (opcional)</legend>
+            <label className="text-field"><span>Verbo en plural</span><input value={pluralLabel} onChange={(event)=>setPluralLabel(event.target.value)} placeholder="Por ejemplo: saltan" /></label>
+            <label className="file-field"><span>Audio MP3 del verbo en plural</span><input type="file" aria-label="Audio MP3 del verbo en plural" accept="audio/mpeg,.mp3" onChange={(event)=>setPluralFile(event.target.files?.[0])}/><small>{pluralFile?.name ?? record?.pluralAudioFileName ?? 'Sin grabación plural'}</small></label>
+            <p>La forma plural permite usar este verbo con dos sujetos. Configura después sus compatibilidades.</p>
+          </fieldset>}
           <div className="file-fields">
             <label className="file-field">
               <span>Pictograma PNG</span>
-              <input type="file" accept="image/png,.png" onChange={(event) => setImageFile(event.target.files?.[0])} />
+              <input type="file" aria-label="Pictograma PNG" accept="image/png,.png" onChange={(event) => setImageFile(event.target.files?.[0])} />
               <small>{imageFile?.name ?? record?.imageFileName ?? 'Ningún archivo seleccionado'}</small>
             </label>
             <label className="file-field">
               <span>Audio MP3</span>
-              <input type="file" accept="audio/mpeg,.mp3" onChange={(event) => setAudioFile(event.target.files?.[0])} />
+              <input type="file" aria-label="Audio MP3" accept="audio/mpeg,.mp3" onChange={(event) => setAudioFile(event.target.files?.[0])} />
               <small>{audioFile?.name ?? record?.audioFileName ?? 'Ningún archivo seleccionado'}</small>
             </label>
           </div>
@@ -249,6 +259,11 @@ function ContentEditor({ record, allPictograms, onCancel, onSaved }: EditorProps
 
 export function ContentManagerScreen({
   bundledPictograms,
+  pictograms,
+  localScenes,
+  localRules,
+  compatibility,
+  baseCompatibility,
   localRecords,
   onBack,
   onChanged,
@@ -258,20 +273,10 @@ export function ContentManagerScreen({
   const [message, setMessage] = useState<string>()
   const importInputRef = useRef<HTMLInputElement>(null)
 
-  const allPictograms = useMemo<Pictogram[]>(() => [
-    ...bundledPictograms,
-    ...localRecords.map((record) => ({
-      id: record.id,
-      label: record.label,
-      image: '',
-      audioIds: [],
-      categories: record.categories,
-      tags: [],
-      initialSound: record.initialSound,
-      availableFromUnit: record.availableFromUnit,
-      source: 'local' as const,
-    })),
-  ], [bundledPictograms, localRecords])
+  const [importRevision,setImportRevision] = useState(0)
+  const [section,setSection] = useState<'words'|'scenes'|'rules'>('words')
+  const context:BankContext = { pictograms:bundledPictograms,rules:baseCompatibility }
+  const allPictograms = pictograms
 
   const closeEditor = () => {
     setEditorOpen(false)
@@ -279,20 +284,29 @@ export function ContentManagerScreen({
   }
 
   const exportBackup = async () => {
-    const backup = await createLocalContentBackup(localRecords)
-    const url = URL.createObjectURL(backup)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `rosetta-contenidos-${new Date().toISOString().slice(0, 10)}.json`
-    link.click()
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    try {
+      const backup = await createResourceBankBackup()
+      const url = URL.createObjectURL(backup)
+      const link = document.createElement('a')
+      link.href=url;link.download=`rosetta-recursos-${new Date().toISOString().slice(0,10)}.json`;link.click()
+      window.setTimeout(()=>URL.revokeObjectURL(url),1000)
+      setMessage('Copia completa preparada: tarjetas, escenas, audios y compatibilidades.')
+    } catch(reason) { setMessage(reason instanceof Error ? reason.message : 'No se pudo exportar la copia.') }
   }
 
   const handleImport = async (file?: File) => {
     if (!file) return
     try {
-      const count = await importLocalContentBackup(file)
+      let count:number
+      try { count = await importResourceBankBackup(file,context) }
+      catch(reason) {
+        if (!(reason instanceof BackupConflictError)) throw reason
+        if (!window.confirm(reason.message)) { setMessage('Importación cancelada. No se ha modificado el banco.');return }
+        count = await importResourceBankBackup(file,context,true)
+      }
       await onChanged()
+      closeEditor()
+      setImportRevision((value)=>value+1)
       setMessage(`Se han importado ${count} contenidos.`)
     } catch (reason) {
       setMessage(reason instanceof Error ? reason.message : 'No se pudo importar la copia.')
@@ -303,9 +317,11 @@ export function ContentManagerScreen({
 
   const handleDelete = async (record: LocalContentRecord) => {
     if (!window.confirm(`¿Eliminar «${record.label}» del banco local?`)) return
-    await deleteLocalContent(record.id)
-    await onChanged()
-    setMessage(`Se ha eliminado «${record.label}».`)
+    try {
+      await deleteBankWord(record.id,context)
+      await onChanged()
+      setMessage(`Se ha eliminado «${record.label}».`)
+    } catch(reason) { setMessage(`No se puede eliminar «${record.label}»: ${reason instanceof Error ? reason.message : 'tiene referencias en el banco.'} Revisa sus escenas y compatibilidades.`) }
   }
 
   return (
@@ -313,9 +329,9 @@ export function ContentManagerScreen({
       <ActivityHeader title="Banco de contenidos" subtitle="Modo docente" onBack={onBack} />
       <section className="content-manager-summary">
         <div><strong>{bundledPictograms.length}</strong><span>contenidos incluidos</span></div>
-        <div><strong>{localRecords.length}</strong><span>contenidos añadidos</span></div>
+        <div><strong>{localRecords.length+localScenes.length+localRules.length}</strong><span>{localRecords.length} tarjetas · {localScenes.length} escenas · {localRules.length} verbos configurados</span></div>
         <div className="content-manager-actions">
-          <button className="button" type="button" onClick={() => void exportBackup()} disabled={localRecords.length === 0}>Exportar copia</button>
+          <button className="button" type="button" onClick={() => void exportBackup()} disabled={localRecords.length+localScenes.length+localRules.length === 0}>Exportar copia</button>
           <button className="button" type="button" onClick={() => importInputRef.current?.click()}>Importar copia</button>
           <input
             ref={importInputRef}
@@ -324,7 +340,7 @@ export function ContentManagerScreen({
             accept="application/json,.json"
             onChange={(event) => void handleImport(event.target.files?.[0])}
           />
-          <button className="button button--primary" type="button" onClick={() => { setEditorRecord(undefined); setEditorOpen(true) }}>
+          <button className="button button--primary" type="button" onClick={() => { setSection('words'); setMessage(undefined); setEditorRecord(undefined); setEditorOpen(true) }}>
             Añadir contenido
           </button>
         </div>
@@ -332,11 +348,19 @@ export function ContentManagerScreen({
 
       {message && <p className="manager-message" role="status">{message}</p>}
 
+      <p className="resource-local-note">Los recursos se guardan en este navegador. No se publican en Netlify. Exporta una copia para conservarlos o llevarlos a otra PDI.</p>
+      <nav className="resource-sections" aria-label="Secciones del banco">
+        <button type="button" aria-pressed={section==='words'} onClick={()=>{setSection('words');setMessage(undefined)}}>Tarjetas de palabras</button>
+        <button type="button" aria-pressed={section==='scenes'} onClick={()=>{setSection('scenes');setMessage(undefined)}}>Escenas y frases</button>
+        <button type="button" aria-pressed={section==='rules'} onClick={()=>{setSection('rules');setMessage(undefined)}}>Compatibilidades</button>
+      </nav>
+      <section className="resource-tab-panel" hidden={section!=='words'} aria-label="Tarjetas de palabras">
       {editorOpen && (
         <ContentEditor
           key={editorRecord?.id ?? 'new'}
           record={editorRecord}
           allPictograms={allPictograms}
+          context={context}
           onCancel={closeEditor}
           onSaved={async () => {
             await onChanged()
@@ -371,6 +395,9 @@ export function ContentManagerScreen({
           </div>
         )}
       </section>
+      </section>
+      <section className="resource-tab-panel" hidden={section!=='scenes'}><ScenePanel key={`scenes-${importRevision}`} scenes={localScenes} pictograms={pictograms} rules={compatibility} context={context} onChanged={onChanged}/></section>
+      <section className="resource-tab-panel" hidden={section!=='rules'}><CompatibilityPanel key={`rules-${importRevision}`} pictograms={pictograms} rules={compatibility} localRules={localRules} context={context} onChanged={onChanged}/></section>
     </main>
   )
 }

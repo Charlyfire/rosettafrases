@@ -5,7 +5,7 @@ const hasRole = (pictogram: Pictogram, role: 'subject' | 'action' | 'complement'
   pictogram.grammatical?.role?.includes(role) || pictogram.categories.includes(role)
 
 const signature = (sentence: SentenceDefinition) =>
-  [sentence.subjectId, sentence.actionId, ...sentence.complementIds].join('|')
+  sentence.clauses ? `scene:${sentence.id}` : [sentence.subjectId, sentence.actionId, ...sentence.complementIds].join('|')
 
 export const generateCompatibleSentences = (
   explicitSentences: SentenceDefinition[],
