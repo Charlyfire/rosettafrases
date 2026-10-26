@@ -13,7 +13,7 @@
     { "id": "avion", "label": "avión", "image": "images/avion.png", "audioIds": ["word-avion"], "categories": ["global-word", "noun"], "tags": [], "initialSound": "a", "availableFromUnit": 6 },
 
     { "id": "elefante", "label": "elefante", "image": "images/elefante.png", "audioIds": ["word-elefante"], "categories": ["global-word", "noun"], "tags": [], "initialSound": "e", "availableFromUnit": 9 },
-    { "id": "empanadilla", "label": "empanadilla", "image": "images/empanadilla.png", "audioIds": ["word-empanadilla"], "categories": ["global-word", "noun", "food", "complement"], "tags": [], "initialSound": "e", "availableFromUnit": 9 },
+    { "id": "empanadilla", "label": "empanadillas", "image": "images/empanadilla.png", "audioIds": ["word-empanadillas"], "categories": ["global-word", "noun", "food", "complement"], "tags": [], "initialSound": "e", "availableFromUnit": 9 },
     { "id": "enchufe", "label": "enchufe", "image": "images/enchufe.png", "audioIds": ["word-enchufe"], "categories": ["global-word", "noun"], "tags": [], "initialSound": "e", "availableFromUnit": 9 },
     { "id": "ensalada", "label": "ensalada", "image": "images/ensalada.png", "audioIds": ["word-ensalada"], "categories": ["global-word", "noun", "food", "complement"], "tags": [], "initialSound": "e", "availableFromUnit": 9 },
     { "id": "ensaladilla-rusa", "label": "ensaladilla rusa", "image": "images/ensaladilla rusa.png", "audioIds": ["word-ensaladilla-rusa"], "categories": ["global-word", "noun", "food", "complement"], "tags": [], "initialSound": "e", "availableFromUnit": 9 },

@@ -110,6 +110,22 @@
     { "id": "word-cuentos", "kind": "word", "file": "audio/words/cuentos.mp3", "transcript": "cuentos" },
     { "id": "word-juguetes", "kind": "word", "file": "audio/words/juguetes.mp3", "transcript": "juguetes" },
     { "id": "word-y", "kind": "word", "file": "audio/words/y.mp3", "transcript": "y" },
-    { "id": "word-punto", "kind": "word", "file": "audio/words/punto.mp3", "transcript": "punto" }
+    { "id": "word-punto", "kind": "word", "file": "audio/words/punto.mp3", "transcript": "punto" },
+    {"id": "word-barren", "kind": "word", "file": "audio/words/barren.mp3", "transcript": "barren"},
+    {"id": "word-besan", "kind": "word", "file": "audio/words/besan.mp3", "transcript": "besan"},
+    {"id": "word-beben", "kind": "word", "file": "audio/words/beben.mp3", "transcript": "beben"},
+    {"id": "word-cantan", "kind": "word", "file": "audio/words/cantan.mp3", "transcript": "cantan"},
+    {"id": "word-cocinan", "kind": "word", "file": "audio/words/cocinan.mp3", "transcript": "cocinan"},
+    {"id": "word-comen", "kind": "word", "file": "audio/words/comen.mp3", "transcript": "comen"},
+    {"id": "word-compran", "kind": "word", "file": "audio/words/compran.mp3", "transcript": "compran"},
+    {"id": "word-corren", "kind": "word", "file": "audio/words/corren.mp3", "transcript": "corren"},
+    {"id": "word-cortan", "kind": "word", "file": "audio/words/cortan.mp3", "transcript": "cortan"},
+    {"id": "word-duermen", "kind": "word", "file": "audio/words/duermen.mp3", "transcript": "duermen"},
+    {"id": "word-juegan", "kind": "word", "file": "audio/words/juegan.mp3", "transcript": "juegan"},
+    {"id": "word-leen", "kind": "word", "file": "audio/words/leen.mp3", "transcript": "leen"},
+    {"id": "word-nadan", "kind": "word", "file": "audio/words/nadan.mp3", "transcript": "nadan"},
+    {"id": "word-patinan", "kind": "word", "file": "audio/words/patinan.mp3", "transcript": "patinan"},
+    {"id": "word-pintan", "kind": "word", "file": "audio/words/pintan.mp3", "transcript": "pintan"},
+    {"id": "word-empanadillas", "kind": "word", "file": "audio/words/empanadillas.mp3", "transcript": "empanadillas"}
   ]
 }

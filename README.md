@@ -153,7 +153,7 @@ acelerar la voz, síntesis de voz ni servicios en línea.
 Los verbos plurales mantienen el mismo pictograma y usan la forma escrita correcta
 (`beben`, `comen`, etc.). No se sintetiza voz ni se reproduce la grabación singular
 en su lugar. Si falta una grabación, se muestra **Audio plural pendiente** y queda
-disponible el dictado oral del docente. Los audios necesarios y cómo incorporarlos
+disponible el dictado oral del docente. Las 15 grabaciones plurales incorporadas y cómo registrarlas
 están documentados en [PLURAL_AUDIO.md](PLURAL_AUDIO.md).
 
 Ordenar frase conserva una tarjeta por cada aparición de una palabra, incluidas
