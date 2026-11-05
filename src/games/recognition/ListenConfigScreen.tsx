@@ -1,3 +1,4 @@
+import { ClassroomParticipationNotice } from '../../classroom/ClassroomParticipationNotice'
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityHeader } from '../../components/ActivityHeader'
 import { SegmentedControl } from '../../components/SegmentedControl'
@@ -91,6 +92,7 @@ export function ListenConfigScreen({ pictograms, units, onBack, onStart }: Liste
         <SegmentedControl legend="Botón repetir" value={allowRepeatAudio ? 'yes' : 'no'} options={[{ value: 'yes', label: 'Mostrar' }, { value: 'no', label: 'Ocultar' }]} onChange={(value) => setAllowRepeatAudio(value === 'yes')} />
         <SegmentedControl legend="Audio de feedback" value={feedbackAudio ? 'yes' : 'no'} options={[{ value: 'yes', label: 'Sí' }, { value: 'no', label: 'No' }]} onChange={(value) => setFeedbackAudio(value === 'yes')} />
         <WrittenWordsControl value={showLabels} onChange={setShowLabels} />
+        {(contentType === 'characters' || contentType === 'initial-sound-words') && <ClassroomParticipationNotice eligible={targets} />}
         <div className="teacher-panel__footer"><p>{possibleRounds.length} rondas efectivas.</p><button className="button button--primary button--large" type="submit" disabled={possibleRounds.length === 0}>Iniciar actividad</button></div>
       </form>
     </main>
