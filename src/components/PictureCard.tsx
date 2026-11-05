@@ -28,7 +28,7 @@ export function PictureCard({ pictogram, showLabel = true }: PictureCardProps) {
           </div>
         )}
       </div>
-      {showLabel && <figcaption>{pictogram.label}</figcaption>}
+      {showLabel && !pictogram.tags.includes('classroom') && <figcaption>{pictogram.label}</figcaption>}
     </figure>
   )
 }
