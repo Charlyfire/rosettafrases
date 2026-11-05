@@ -119,14 +119,14 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
     </section>
     <section className="classroom-backups">
       <h2>Copias locales</h2>
-      <p>Una copia exportada contiene los nombres y las fotografías. No la compartas públicamente. Importar sustituye los alumnos actuales.</p>
+      <p>Una copia exportada contiene los nombres, las fotografías y las grabaciones de voz. No la compartas públicamente. Importar sustituye los alumnos actuales.</p>
       <div className="button-row">
         <button className="button" type="button" onClick={() => void downloadBackup()}>Exportar copia al ordenador</button>
         <label className="button">Importar copia <input type="file" accept="application/json,.json" onChange={async (event) => {
           const file = event.target.files?.[0]
           if (!file) return
           if (!window.confirm('¿Sustituir los alumnos guardados en este dispositivo por los de la copia?')) return
-          try { if (file.size > 8 * 1024 * 1024) throw new Error('Archivo demasiado grande'); await importClassroom(await file.text()); await reload(); setMessage('Copia importada en este dispositivo.') }
+          try { if (file.size > 200 * 1024 * 1024) throw new Error('Archivo demasiado grande'); await importClassroom(await file.text()); await reload(); setMessage('Copia importada en este dispositivo.') }
           catch { setMessage('No se pudo importar esta copia.') }
           event.target.value = ''
         }} /></label>
