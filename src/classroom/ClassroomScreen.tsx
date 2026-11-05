@@ -1,3 +1,4 @@
+import { sanitizePupilPhoto } from './photoPrivacy'
 import type { PupilDisplay } from './classroomRuntime'
 import { useEffect, useState, type FormEvent } from 'react'
 import type { ClassroomMode, Pupil } from './classroomRepository'
@@ -50,7 +51,7 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
       return
     }
     try {
-      await savePupil({ id: editing?.id ?? crypto.randomUUID(), name: normalizeName(name), surnameInitial: normalizeInitial(initial) || undefined, photo: photo ?? editing?.photo, nameAudio: nameAudio ?? editing?.nameAudio })
+      await savePupil({ id: editing?.id ?? crypto.randomUUID(), name: normalizeName(name), surnameInitial: normalizeInitial(initial) || undefined, photo: photo ? await sanitizePupilPhoto(photo) : editing?.photo, nameAudio: nameAudio ?? editing?.nameAudio })
       setName(''); setInitial(''); setPhoto(undefined); setNameAudio(undefined); setEditing(undefined)
       const input = document.getElementById('classroom-photo-input') as HTMLInputElement | null
       if (input) input.value = ''
@@ -64,12 +65,13 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
   const startEdit = (pupil: Pupil) => { setEditing(pupil); setName(pupil.name); setInitial(pupil.surnameInitial ?? ''); setPhoto(undefined); setNameAudio(undefined) }
   const downloadBackup = async () => {
     try {
+      if (!window.confirm('La copia incluirá nombres, fotografías y grabaciones sin cifrar. ¿Quieres guardarla en este dispositivo?')) return
       const json = await exportClassroom()
       const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
       const link = document.createElement('a')
       link.href = url; link.download = 'copia-privada-mi-clase.json'; link.click()
       setTimeout(() => URL.revokeObjectURL(url), 3000)
-      setMessage('Copia guardada en tus descargas. Contiene datos personales: consérvala en un lugar seguro.')
+      setMessage('Copia descargada. Guárdala en una carpeta protegida del centro; contiene datos personales sin cifrar.')
     } catch { setMessage('No se pudo exportar la copia local.') }
   }
 
@@ -119,13 +121,13 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
     </section>
     <section className="classroom-backups">
       <h2>Copias locales</h2>
-      <p>Una copia exportada contiene los nombres, las fotografías y las grabaciones de voz. No la compartas públicamente. Importar sustituye los alumnos actuales.</p>
+      <p>Una copia exportada contiene los nombres, las fotografías y las grabaciones de voz. No la compartas públicamente. Importar sustituye los alumnos actuales. Exporta primero una copia de seguridad, si deseas conservarlos.</p>
       <div className="button-row">
         <button className="button" type="button" onClick={() => void downloadBackup()}>Exportar copia al ordenador</button>
         <label className="button">Importar copia <input type="file" accept="application/json,.json" onChange={async (event) => {
           const file = event.target.files?.[0]
           if (!file) return
-          if (!window.confirm('¿Sustituir los alumnos guardados en este dispositivo por los de la copia?')) return
+          if (!window.confirm('IMPORTANTE: se sustituirán todos los alumnos de este navegador. ¿Has guardado antes una copia de seguridad?')) return
           try { if (file.size > 200 * 1024 * 1024) throw new Error('Archivo demasiado grande'); await importClassroom(await file.text()); await reload(); setMessage('Copia importada en este dispositivo.') }
           catch { setMessage('No se pudo importar esta copia.') }
           event.target.value = ''
