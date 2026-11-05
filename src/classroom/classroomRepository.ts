@@ -4,6 +4,7 @@ export interface Pupil {
   name: string
   surnameInitial?: string
   photo?: Blob
+  nameAudio?: Blob
 }
 
 export type ClassroomMode = 'rosetta' | 'class'
@@ -110,7 +111,7 @@ export async function exportClassroom() {
     reader.onerror = () => reject(reader.error)
     reader.readAsDataURL(blob)
   })
-  const records = await Promise.all(pupils.map(async ({ photo, ...pupil }) => ({ ...pupil, photo: await convert(photo) })))
+  const records = await Promise.all(pupils.map(async ({ photo, nameAudio, ...pupil }) => ({ ...pupil, photo: await convert(photo), nameAudio: await convert(nameAudio) })))
   return JSON.stringify({ format: 'rosetta-private-classroom', version: 1, mode, display, pupils: records }, null, 2)
 }
 
@@ -128,7 +129,12 @@ export async function importClassroom(json: string) {
       const response = await fetch(item.photo)
       photo = await response.blob()
     }
-    imported.push({ id: item.id, name: normalizeName(item.name), surnameInitial: normalizeInitial(item.surnameInitial ?? '') || undefined, photo })
+    let nameAudio: Blob | undefined
+    if (item.nameAudio != null) {
+      if (typeof item.nameAudio !== 'string' || !/^data:audio\\/(mpeg|mp3|wav|x-wav|ogg|webm);base64,/.test(item.nameAudio) || item.nameAudio.length > 9000000) throw new Error('La copia incluye un audio no compatible.')
+      nameAudio = await (await fetch(item.nameAudio)).blob()
+    }
+    imported.push({ id: item.id, name: normalizeName(item.name), surnameInitial: normalizeInitial(item.surnameInitial ?? '') || undefined, photo, nameAudio })
   }
   const db = await openClassroom()
   try {
