@@ -18,7 +18,7 @@ const titles: Record<SentenceGameMode, string> = {
   'complete-dictation': 'Dictado completo', 'sentence-order': 'Ordenar frase', 'scene-sentence': 'Construir frase a partir de imagen',
 }
 export function SentenceGameConfigScreen({ mode, pictograms, sentences, compatibility, onBack, onStart }: Props) {
-  return <><ClassroomParticipationNotice eligible={pictograms} /><SentenceConfigScreen title={titles[mode]} scene={mode === 'scene-sentence'} available={(settings) =>
+  return <SentenceConfigScreen participation={<ClassroomParticipationNotice eligible={pictograms} />} title={titles[mode]} scene={mode === 'scene-sentence'} available={(settings) =>
     buildSentencePlans(sentences, pictograms, compatibility, { ...settings, roundCount: 1 }, mode === 'scene-sentence', true).length > 0
-  } onBack={onBack} onStart={onStart} /></>
+  } onBack={onBack} onStart={onStart} />
 }
