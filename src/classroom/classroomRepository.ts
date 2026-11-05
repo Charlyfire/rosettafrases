@@ -1,3 +1,4 @@
+import type { PupilDisplay } from './classroomRuntime'
 export interface Pupil {
   id: string
   name: string
@@ -48,15 +49,16 @@ export const normalizeInitial = (raw: string): string =>
 export const pupilDisplayName = (pupil: Pupil) =>
   `${pupil.name}${pupil.surnameInitial ? ' ' + pupil.surnameInitial + '.' : ''}`
 
-export async function readClassroom(): Promise<{ pupils: Pupil[]; mode: ClassroomMode }> {
+export async function readClassroom(): Promise<{ pupils: Pupil[]; mode: ClassroomMode; display: PupilDisplay }> {
   const db = await openClassroom()
   try {
     const tx = db.transaction([STORE, SETTINGS], 'readonly')
-    const [pupils, mode] = await Promise.all([
+    const [pupils, mode, display] = await Promise.all([
       result(tx.objectStore(STORE).getAll() as IDBRequest<Pupil[]>),
       result(tx.objectStore(SETTINGS).get('mode') as IDBRequest<ClassroomMode | undefined>),
+      result(tx.objectStore(SETTINGS).get('display') as IDBRequest<PupilDisplay | undefined>),
     ])
-    return { pupils: pupils.sort((a, b) => a.name.localeCompare(b.name, 'es')), mode: mode === 'class' ? 'class' : 'rosetta' }
+    return { pupils: pupils.sort((a, b) => a.name.localeCompare(b.name, 'es')), mode: mode === 'class' ? 'class' : 'rosetta', display: display === 'photo' || display === 'name' ? display : 'both' }
   } finally {
     db.close()
   }
@@ -89,10 +91,19 @@ export async function setClassroomMode(mode: ClassroomMode) {
   } finally { db.close() }
 }
 
+export async function setPupilDisplay(display: PupilDisplay) {
+  const db = await openClassroom()
+  try {
+    const tx = db.transaction(SETTINGS, 'readwrite')
+    tx.objectStore(SETTINGS).put(display, 'display')
+    await done(tx)
+  } finally { db.close() }
+}
+
 // Backups only leave the browser when the teacher explicitly saves the file.
 // Photos are embedded locally in the downloaded JSON.
 export async function exportClassroom() {
-  const { pupils, mode } = await readClassroom()
+  const { pupils, mode, display } = await readClassroom()
   const convert = (blob?: Blob): Promise<string | null> => !blob ? Promise.resolve(null) : new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(String(reader.result))
@@ -100,7 +111,7 @@ export async function exportClassroom() {
     reader.readAsDataURL(blob)
   })
   const records = await Promise.all(pupils.map(async ({ photo, ...pupil }) => ({ ...pupil, photo: await convert(photo) })))
-  return JSON.stringify({ format: 'rosetta-private-classroom', version: 1, mode, pupils: records }, null, 2)
+  return JSON.stringify({ format: 'rosetta-private-classroom', version: 1, mode, display, pupils: records }, null, 2)
 }
 
 export async function importClassroom(json: string) {
@@ -126,6 +137,7 @@ export async function importClassroom(json: string) {
     store.clear()
     imported.forEach((pupil) => store.put(pupil))
     tx.objectStore(SETTINGS).put(parsed.mode === 'class' ? 'class' : 'rosetta', 'mode')
+    tx.objectStore(SETTINGS).put(parsed.display === 'photo' || parsed.display === 'name' ? parsed.display : 'both', 'display')
     await done(tx)
   } finally { db.close() }
 }
