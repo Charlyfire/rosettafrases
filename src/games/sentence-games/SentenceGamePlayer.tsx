@@ -65,9 +65,11 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
       afterWord()
       return
     }
-    setSelected((current) => [...current, expected])
+    const next = [...selected, expected]
+    while (round.parts[next.length] && round.roles[next.length] === 'comma') next.push(round.parts[next.length])
+    setSelected(next)
     setAttempts(0)
-    if (selected.length + 1 === round.parts.length) {
+    if (next.length === round.parts.length) {
       setFeedback(positiveFeedback[0].text)
       if (expected.id !== 'punto') play(positiveFeedback[0].file)
     }
@@ -86,6 +88,7 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
   const consumed = new Map<string, number>()
   selected.forEach(({ id }) => consumed.set(id, (consumed.get(id) ?? 0) + 1))
   const remaining = round.options.flatMap((item, index) => {
+    if (item.id === 'coma') return []
     const used = consumed.get(item.id) ?? 0
     if (mode === 'sentence-order') {
       if (used > 0) { consumed.set(item.id, used - 1); return [] }
