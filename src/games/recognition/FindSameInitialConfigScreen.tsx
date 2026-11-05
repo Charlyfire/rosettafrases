@@ -1,3 +1,4 @@
+import { ClassroomParticipationNotice } from '../../classroom/ClassroomParticipationNotice'
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityHeader } from '../../components/ActivityHeader'
 import { SegmentedControl } from '../../components/SegmentedControl'
@@ -59,6 +60,7 @@ export function FindSameInitialConfigScreen({ pictograms, units, onBack, onStart
         <SegmentedControl legend="Audio" value={audioAutoplay ? 'automatic' : 'manual'} options={[{ value: 'automatic', label: 'Automático' }, { value: 'manual', label: 'Manual' }]} onChange={(value) => setAudioAutoplay(value === 'automatic')} />
         <SegmentedControl legend="Vocal de apoyo" value={showVowelSupport ? 'show' : 'hide'} options={[{ value: 'hide', label: 'Ocultar' }, { value: 'show', label: 'Mostrar' }]} onChange={(value) => setShowVowelSupport(value === 'show')} />
         <WrittenWordsControl value={showLabels} onChange={setShowLabels} />
+        <ClassroomParticipationNotice eligible={words} sounds={selectedSounds} />
         <div className="teacher-panel__footer"><p>{available} rondas efectivas.</p><button className="button button--primary button--large" type="submit" disabled={available === 0}>Iniciar actividad</button></div>
       </form>
     </main>

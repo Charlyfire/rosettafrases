@@ -42,7 +42,7 @@ export function PictogramOption({
   useEffect(() => setImageMissing(false), [pictogram.image])
   const picture = (
     <button
-      className={`recognition-option recognition-option--${state} ${showLabel ? 'recognition-option--with-label' : ''} ${unavailable ? 'recognition-option--unavailable' : ''} ${selected ? 'recognition-option--selected' : ''}`}
+      className={`recognition-option recognition-option--${state} ${pictogram.tags.includes('classroom') ? 'recognition-option--pupil' : ''} ${showLabel ? 'recognition-option--with-label' : ''} ${unavailable ? 'recognition-option--unavailable' : ''} ${selected ? 'recognition-option--selected' : ''}`}
       type="button"
       disabled={disabled}
       data-unavailable={unavailable || undefined}
@@ -62,10 +62,11 @@ export function PictogramOption({
           <span className="recognition-option__missing">PNG pendiente</span>
         )}
       </span>
-      {showLabel && <strong>{pictogram.label}</strong>}
+      {showLabel && !pictogram.tags.includes('classroom') && <strong>{pictogram.label}</strong>}
     </button>
   )
-  if (!onListen) return picture
+  // Do not waste a row on an unavailable recording for private classroom names.
+  if (!onListen || (pictogram.tags.includes('classroom') && listenDisabled)) return picture
   return (
     <div className="pictogram-card">
       {picture}

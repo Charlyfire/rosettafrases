@@ -57,10 +57,10 @@ export function RecognitionPlayer({
     ? initialSoundInstructionFiles[targetSound]
     : wordAudio?.file
 
-  const playPrompt = useCallback(() => playFile(promptFile), [playFile, promptFile])
+  const playPrompt = useCallback(() => { if (promptFile) playFile(promptFile) }, [playFile, promptFile])
 
   useEffect(() => {
-    if (audioAutoplay && round && !finished) playPrompt()
+    if (audioAutoplay && promptFile && round && !finished) playPrompt()
     return () => {
       stop()
       window.clearTimeout(transitionTimerRef.current)
@@ -137,7 +137,8 @@ export function RecognitionPlayer({
             <img src={resolveAssetUrl(`images/letra ${targetSound}.png`)} alt={`Letra ${targetSound.toUpperCase()}`} />
           </div>
         )}
-        {allowRepeatAudio && <AudioButton label={mode === 'initial-sound' && targetSound ? `¿Cuál empieza por ${targetSound.toUpperCase()}?` : 'Escuchar otra vez'} ariaLabel="Repetir consigna" onClick={playPrompt} />}
+        {mode === 'listen-and-find' && correctPictogram?.tags.includes('classroom') && !wordAudio && <p className="teacher-oral-prompt">Di el nombre del alumno en voz alta para que lo encuentre.</p>}
+        {allowRepeatAudio && Boolean(promptFile) && <AudioButton label={mode === 'initial-sound' && targetSound ? `¿Cuál empieza por ${targetSound.toUpperCase()}?` : 'Escuchar otra vez'} ariaLabel="Repetir consigna" onClick={playPrompt} />}
       </section>
 
       <OptionGrid count={round.options.length} label="Opciones">

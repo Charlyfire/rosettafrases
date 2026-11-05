@@ -1,3 +1,4 @@
+import { ClassroomParticipationNotice } from '../../classroom/ClassroomParticipationNotice'
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityHeader } from '../../components/ActivityHeader'
 import { SegmentedControl } from '../../components/SegmentedControl'
@@ -45,6 +46,7 @@ export function VowelSortConfigScreen({ pictograms, units, onBack, onStart }: Pr
           <SegmentedControl legend="Orden" value={order} options={[{ value: 'fixed', label: 'Fijo' }, { value: 'random', label: 'Aleatorio' }]} onChange={setOrder} />
           <WrittenWordsControl value={showLabels} onChange={setShowLabels} />
         </>}
+        <ClassroomParticipationNotice eligible={words} sounds={sounds} />
         <div className="teacher-panel__footer"><p>{itemsAvailable} imágenes disponibles para {sounds.map((sound) => sound.toUpperCase()).join(' · ')}.</p><button className="button button--primary button--large" type="submit" disabled={itemsAvailable === 0}>Iniciar actividad</button></div>
       </form>
     </main>

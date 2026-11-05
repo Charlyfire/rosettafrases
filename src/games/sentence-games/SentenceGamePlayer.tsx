@@ -65,9 +65,11 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
       afterWord()
       return
     }
-    setSelected((current) => [...current, expected])
+    const next = [...selected, expected]
+    while (round.parts[next.length] && round.roles[next.length] === 'comma') next.push(round.parts[next.length])
+    setSelected(next)
     setAttempts(0)
-    if (selected.length + 1 === round.parts.length) {
+    if (next.length === round.parts.length) {
       setFeedback(positiveFeedback[0].text)
       if (expected.id !== 'punto') play(positiveFeedback[0].file)
     }
@@ -86,6 +88,7 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
   const consumed = new Map<string, number>()
   selected.forEach(({ id }) => consumed.set(id, (consumed.get(id) ?? 0) + 1))
   const remaining = round.options.flatMap((item, index) => {
+    if (item.id === 'coma') return []
     const used = consumed.get(item.id) ?? 0
     if (mode === 'sentence-order') {
       if (used > 0) { consumed.set(item.id, used - 1); return [] }
@@ -106,7 +109,7 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
       {remaining.map(({ item, key }) => <PictogramOption key={`${round.id}-${key}`} pictogram={item} showLabel={showLabels} onListen={item.id === 'coma' ? undefined : () => play(audioFileFor(item))} listenDisabled={!audioFileFor(item)} onSelect={() => choose(item.id)} draggable onDragStart={(event: DragEvent<HTMLButtonElement>) => event.dataTransfer.setData('text/rosetta-pictogram', item.id)} />)}
     </section>}
     {complete && <nav className="game-controls"><button className="button" onClick={() => { setSelected([]); setFeedback(undefined) }}>Repetir</button>{(sentenceAudio || (mode !== 'complete-dictation' && partAudioFiles.length === spokenParts.length)) && <AudioButton label="Leer frase" ariaLabel="Leer la frase completa" onClick={playSentence} />}<button className="button button--primary" onClick={() => setRoundIndex((value) => value + 1)}>Siguiente actividad</button></nav>}
-    {complete && missingWords.length > 0 && <p className="teacher-oral-prompt">Audio plural pendiente: {missingWords.map(({ label }) => `«${label}»`).join(', ')}. Lectura del docente.</p>}
+    {complete && missingWords.length > 0 && <p className="teacher-oral-prompt">Faltan grabaciones para: {missingWords.map(({ label }) => `«${label}»`).join(', ')}. Lectura del docente.</p>}
     <Feedback message={feedback} />
     {audioError && <p className="asset-warning" role="status">No se ha podido reproducir uno de los audios.</p>}
   </main>

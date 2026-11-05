@@ -1,3 +1,4 @@
+import { ClassroomParticipationNotice } from '../../classroom/ClassroomParticipationNotice'
 import type { SequentialDictationSettings } from '../../domain/activity'
 import type { Pictogram } from '../../domain/content'
 import type { ActionCompatibility, SentenceDefinition } from '../../domain/sentence'
@@ -12,7 +13,7 @@ interface Props {
   onStart: (settings: SequentialDictationSettings) => void
 }
 export function DictationConfigScreen({ pictograms, sentences, compatibility, onBack, onStart }: Props) {
-  return <SentenceConfigScreen title="Dictado secuenciado" available={(settings) =>
-    buildSentencePlans(sentences, pictograms, compatibility, { ...settings, roundCount: 1 }).length > 0
+  return <SentenceConfigScreen participation={<ClassroomParticipationNotice eligible={pictograms} />} title="Dictado secuenciado" available={(settings) =>
+    buildSentencePlans(sentences, pictograms, compatibility, { ...settings, roundCount: 1 }, false, true).length > 0
   } onBack={onBack} onStart={onStart} />
 }

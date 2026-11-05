@@ -10,7 +10,7 @@ import type { SentenceBuilderSettings } from '../../domain/activity'
 import type { AudioResource, Pictogram } from '../../domain/content'
 import type { ActionCompatibility, SentenceDefinition } from '../../domain/sentence'
 import { useAudioPlayer } from '../../hooks/useAudioPlayer'
-import { sentenceLayout, reconcileSelection, type BuilderSelection } from '../sentences/sentenceStructure'
+import { sentenceLayout, reconcileSelection, commaPictogram, type BuilderSelection } from '../sentences/sentenceStructure'
 import type { SentencePart } from '../dictation/dictationRounds'
 import { sentenceWords, sentencePauses, formatSentence } from '../../utils/sentenceAudio'
 import { findBuiltSentence } from './sentenceBuilderOptions'
@@ -95,7 +95,11 @@ export function SentenceBuilderPlayer({
     setSelected((current) => {
       const next = [...current]
       next[stage] = pictogram
-      return reconcileSelection(next, layout, bank.rules)
+      const reconciled = reconcileSelection(next, layout, bank.rules)
+      layout.forEach((slot, index) => {
+        if (slot.role === 'comma') reconciled[index] = reconciled[index - 1] ? commaPictogram : undefined
+      })
+      return reconciled
     })
     setEditingIndex(undefined)
   }
@@ -138,6 +142,7 @@ export function SentenceBuilderPlayer({
     setSelected((current) => {
       const next = [...current]
       for (let index = next.length - 1; index >= 0; index -= 1) {
+        if (layout[index]?.role === 'comma') { next[index] = undefined; continue }
         if (next[index]) { next[index] = undefined; break }
       }
       return next
@@ -253,7 +258,7 @@ export function SentenceBuilderPlayer({
           activeIndex={complete ? undefined : stage}
           onDropPictogram={complete ? undefined : placeById}
           showLabels={showLabels}
-          onSelectSlot={(index) => { stop(); setEditingIndex(index) }}
+          onSelectSlot={(index) => { if (layout[index]?.role !== 'comma') { stop(); setEditingIndex(index) } }}
         />
       <div className="sentence-workspace__status" aria-live="polite">
         <strong>{editingIndex === undefined ? stageTitle : `Cambiar: ${selected[editingIndex]?.label}`}</strong>
@@ -294,7 +299,7 @@ export function SentenceBuilderPlayer({
         </section>}
         <section className="sentence-bank sentence-bank--signs" aria-label="Signos">
           <h2>Signos</h2>
-          <div className="sentence-bank__grid">{pictograms.filter(({ id }) => id === 'y' || id === 'punto' || id === 'coma').map((item) => renderOption(item, item.id === 'y' ? 'conjunction' : item.id === 'coma' ? 'comma' : 'punctuation'))}</div>
+          <div className="sentence-bank__grid">{pictograms.filter(({ id }) => id === 'y' || id === 'punto').map((item) => renderOption(item, item.id === 'y' ? 'conjunction' : item.id === 'coma' ? 'comma' : 'punctuation'))}</div>
         </section>
       </div>
       <footer className="sentence-workspace__footer">

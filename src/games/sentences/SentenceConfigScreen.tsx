@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { ActivityHeader } from '../../components/ActivityHeader'
 import { SegmentedControl } from '../../components/SegmentedControl'
@@ -9,9 +10,10 @@ interface Props {
   onBack: () => void
   onStart: (settings: SentenceBuilderSettings) => void
   scene?: boolean
+  participation?: ReactNode
 }
 
-export function SentenceConfigScreen({ title, available, onBack, onStart, scene = false }: Props) {
+export function SentenceConfigScreen({ title, available, onBack, onStart, scene = false, participation }: Props) {
   const [subjectCount, setSubjectCount] = useState<1 | 2>(1)
   const [complementCount, setComplementCount] = useState<0 | 1 | 2 | 3>(1)
   const [clauseCount, setClauseCount] = useState<1 | 2>(1)
@@ -40,6 +42,7 @@ export function SentenceConfigScreen({ title, available, onBack, onStart, scene 
       <p className="builder-config__help">Frases enlazadas en la misma oración: «Mamá come pan y Papá bebe agua» tiene dos frases. No es el número de actividades de la sesión.</p>
       {subjectCount === 2 && <p className="config-help">Los verbos van en plural. Si falta su grabación, se indicará «Audio plural pendiente» para que el docente los lea.</p>}
       {scene && <p className="config-help">Solo se ofrecen estructuras con una escena registrada; no se añaden personajes que no aparecen en la imagen.</p>}
+      {participation}
       {!ready && <p className="config-help" role="status">No hay recursos para esta combinación. Ajusta sujetos, complementos o frases para seleccionar una estructura disponible.</p>}
       <div className="teacher-panel__footer">
         <p>{subjectCount} {subjectCount === 1 ? 'sujeto' : 'sujetos'} por frase · {complementCount} {complementCount === 1 ? 'complemento' : 'complementos'} por verbo · {clauseCount} {clauseCount === 1 ? 'frase' : 'frases enlazadas'}</p>

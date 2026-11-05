@@ -1,3 +1,4 @@
+import { ClassroomParticipationNotice } from '../../classroom/ClassroomParticipationNotice'
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityHeader } from '../../components/ActivityHeader'
 import { SegmentedControl } from '../../components/SegmentedControl'
@@ -89,6 +90,7 @@ export function InitialSoundConfigScreen({ pictograms, units, onBack, onStart }:
         )}
         <SegmentedControl legend="Audio de feedback" value={feedbackAudio ? 'yes' : 'no'} options={[{ value: 'yes', label: 'Sí' }, { value: 'no', label: 'No' }]} onChange={(value) => setFeedbackAudio(value === 'yes')} />
         <WrittenWordsControl value={showLabels} onChange={setShowLabels} />
+        <ClassroomParticipationNotice eligible={allWords} sounds={selectedSounds} />
         <div className="teacher-panel__footer"><p>{roundsAvailable} rondas efectivas.</p><button className="button button--primary button--large" type="submit" disabled={roundsAvailable === 0 || unavailable}>Iniciar actividad</button></div>
       </form>
     </main>

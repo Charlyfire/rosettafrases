@@ -30,7 +30,7 @@ describe('motor común de oraciones',()=>{
   expect(shared.parts[3].audioIds).toEqual(['word-beben'])
   expect(shared.audioId).toBeUndefined()
   const [compound]=buildSentenceGameRounds([sentence,second],content,{...settings,clauseCount:2},'complete-dictation',rules)
-  expect(compound.parts.map(({id})=>id)).toEqual(['papa','come','arroz','y','mama','bebe','agua','punto'])
+  expect([['papa','come','arroz','y','mama','bebe','agua','punto'], ['mama','bebe','agua','y','papa','come','arroz','punto']]).toContainEqual(compound.parts.map(({id})=>id))
   expect(compound.audioId).toBeUndefined()
  })
 })

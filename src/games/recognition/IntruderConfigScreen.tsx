@@ -1,3 +1,4 @@
+import { ClassroomParticipationNotice } from '../../classroom/ClassroomParticipationNotice'
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityHeader } from '../../components/ActivityHeader'
 import { SegmentedControl } from '../../components/SegmentedControl'
@@ -40,6 +41,7 @@ export function IntruderConfigScreen({ pictograms, units, onBack, onStart }: Pro
       <SegmentedControl legend="Dificultad" value={difficulty} options={[{ value: 'clear', label: 'Con vocal de apoyo' }, { value: 'mixed', label: 'Sin vocal de apoyo' }]} onChange={setDifficulty} />
       <SegmentedControl legend="Orden" value={order} options={[{ value: 'fixed', label: 'Fijo' }, { value: 'random', label: 'Aleatorio' }]} onChange={setOrder} />
       <WrittenWordsControl value={showLabels} onChange={setShowLabels} />
+      <ClassroomParticipationNotice eligible={words} sounds={selectedSounds} />
       <div className="teacher-panel__footer"><p>{available} rondas efectivas.</p><button className="button button--primary button--large" disabled={!available}>Iniciar actividad</button></div>
     </form>
   </main>

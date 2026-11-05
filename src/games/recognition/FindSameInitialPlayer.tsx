@@ -70,10 +70,11 @@ export function FindSameInitialPlayer({ rounds, audioResources, audioAutoplay, s
       <ActivityHeader title="Busca otra que empiece igual" subtitle={`${roundIndex + 1} de ${rounds.length}`} onBack={onExit} />
       <section className="recognition-prompt">
         {showVowelSupport && <div className="recognition-letter"><img src={resolveAssetUrl(`images/letra ${round.targetSound}.png`)} alt={`Letra ${round.targetSound.toUpperCase()}`} /></div>}
+        {round.model.tags.includes("classroom") && !audioFileFor(round.model) && <p className="teacher-oral-prompt">Pronuncia el nombre del alumno modelo en voz alta.</p>}
         <AudioButton label="Escuchar otra vez" ariaLabel="Repetir la palabra modelo" onClick={playPrompt} />
       </section>
       <section className="find-same-stage">
-        <figure className="initial-model__picture find-same-model"><img src={resolveAssetUrl(round.model.image)} alt={round.model.label} />{showLabels && <figcaption>{round.model.label}</figcaption>}</figure>
+        <figure className="initial-model__picture find-same-model"><img src={resolveAssetUrl(round.model.image)} alt={round.model.label} />{showLabels && !round.model.tags.includes('classroom') && <figcaption>{round.model.label}</figcaption>}</figure>
         <OptionGrid count={round.options.length} label="Busca otra palabra">
           {round.options.map((pictogram) => <PictogramOption key={pictogram.id} pictogram={pictogram} showLabel={showLabels} disabled={Boolean(correctId)} state={correctId === pictogram.id ? 'correct' : wrongId === pictogram.id ? 'try-again' : 'idle'} onSelect={() => choose(pictogram)} />)}
         </OptionGrid>

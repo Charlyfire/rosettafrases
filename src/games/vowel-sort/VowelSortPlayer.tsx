@@ -47,7 +47,8 @@ export function VowelSortPlayer({ items, sounds, audioResources, showLabels, onE
     pointerPlayedRef.current = true
     draggedRef.current = false
     event.currentTarget.setPointerCapture(event.pointerId)
-    play(audioFileFor(pictogram))
+    const file = audioFileFor(pictogram)
+    if (file) play(file)
   }
   const pointerMove = (event: PointerEvent<HTMLButtonElement>) => {
     const start = pointerRef.current
@@ -76,11 +77,11 @@ export function VowelSortPlayer({ items, sounds, audioResources, showLabels, onE
           key={pictogram.id} pictogram={pictogram} showLabel={showLabels} selected={selectedId === pictogram.id}
           onSelect={() => {
             if (suppressClickRef.current) { suppressClickRef.current = false; pointerPlayedRef.current = false; return }
-            if (!pointerPlayedRef.current) play(audioFileFor(pictogram))
+            if (!pointerPlayedRef.current) { const file = audioFileFor(pictogram); if (file) play(file) }
             pointerPlayedRef.current = false
             setSelectedId(pictogram.id)
           }}
-          draggable onDragStart={(event) => { event.dataTransfer.setData('text/rosetta-pictogram', pictogram.id); play(audioFileFor(pictogram)) }}
+          draggable onDragStart={(event) => { event.dataTransfer.setData('text/rosetta-pictogram', pictogram.id); { const file = audioFileFor(pictogram); if (file) play(file) } }}
           onPointerDown={(event) => pointerDown(event, pictogram)} onPointerMove={pointerMove} onPointerUp={(event) => pointerUp(event, pictogram)}
         />)}
         {complete && <p className="vowel-sort-complete">{feedback}</p>}
@@ -94,7 +95,7 @@ export function VowelSortPlayer({ items, sounds, audioResources, showLabels, onE
           aria-label={`Colocar en ${sound.toUpperCase()}`}
         >
           <img className="vowel-sort-zone__vowel" src={resolveAssetUrl(`images/letra ${sound}.png`)} alt={`Letra ${sound.toUpperCase()}`} />
-          <span className="vowel-sort-zone__placed">{items.filter(({ id }) => placed[id] === sound).map((item) => <span className="vowel-sort-zone__item" key={item.id}><img src={resolveAssetUrl(item.image)} alt={item.label} />{showLabels && <small>{item.label}</small>}</span>)}</span>
+          <span className="vowel-sort-zone__placed">{items.filter(({ id }) => placed[id] === sound).map((item) => <span className="vowel-sort-zone__item" key={item.id}><img src={resolveAssetUrl(item.image)} alt={item.label} />{showLabels && !item.tags.includes('classroom') && <small>{item.label}</small>}</span>)}</span>
         </button>)}
       </section>
       <p className={audioError ? 'asset-warning' : 'asset-warning asset-warning--hidden'} role="status">{audioError ? 'No se ha podido reproducir uno de los audios.' : '\u00A0'}</p>

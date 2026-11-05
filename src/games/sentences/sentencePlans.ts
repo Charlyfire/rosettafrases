@@ -3,7 +3,7 @@ import type { Pictogram } from '../../domain/content'
 import type { ActionCompatibility, SentenceDefinition } from '../../domain/sentence'
 import { sentenceLayout, commaPictogram, actionForSubjects } from './sentenceStructure'
 import { builderChoices } from '../sentence-builder/builderSession'
-import { rotate } from '../../utils/collections'
+import { rotate, shuffle } from '../../utils/collections'
 
 export interface SentencePlan {
   id: string
@@ -14,7 +14,34 @@ export interface SentencePlan {
   sceneImage?: string
 }
 
-export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: Pictogram[], compatibility: ActionCompatibility[], settings: SentenceBuilderSettings, scenesOnly = false): SentencePlan[] {
+// The queue lives only in the running browser session. It is deliberately not persisted:
+// no classroom content or usage history is sent to a server.
+const pendingByPool = new Map<string, string[]>()
+
+/** Use every eligible sentence once before cycling through the same pool again. */
+export function selectSessionSentences<T extends { id: string }>(pool: T[], count: number, scope: string): T[] {
+  const limit = Math.min(Math.max(count, 0), pool.length)
+  if (limit === 0) return []
+  const byId = new Map(pool.map((item) => [item.id, item]))
+  const cacheKey = JSON.stringify([scope, pool.map(({ id }) => id).sort()])
+  const pending = (pendingByPool.get(cacheKey) ?? []).filter((id) => byId.has(id))
+  const chosen: string[] = []
+  while (chosen.length < limit) {
+    if (pending.length === 0) {
+      // A boundary may occur inside an activity; do not duplicate a sentence
+      // in that same activity even when a new cycle starts.
+      pending.push(...shuffle(pool.map(({ id }) => id).filter((id) => !chosen.includes(id))))
+    }
+    const id = pending.shift()
+    if (id && !chosen.includes(id)) chosen.push(id)
+  }
+  pendingByPool.set(cacheKey, pending)
+  return chosen.map((id) => byId.get(id)!)
+}
+
+export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: Pictogram[], compatibility: ActionCompatibility[], settings: SentenceBuilderSettings, scenesOnly = false, preview = false): SentencePlan[] {
+  const pick = <T extends { id: string }>(pool: T[], count: number, scope: string) =>
+    preview ? pool.slice(0, Math.max(0, count)) : selectSessionSentences(pool, count, scope)
   const bank = builderChoices(pictograms, compatibility, settings)
   const byId = new Map([...pictograms, commaPictogram].map((item) => [item.id, item]))
   const actions = new Map(bank.actions.map((action) => [action.id, action]))
@@ -59,14 +86,14 @@ export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: 
       })
     })
   }
-  if (!templates.length || !byId.has('punto') || ((settings.subjectCount === 2 || settings.complementCount > 1 || settings.clauseCount > 1) && !byId.has('y'))) return savedPlans.slice(0,settings.roundCount)
-  const ordered = [...templates.filter(({ audioId }) => audioId), ...templates.filter(({ audioId }) => !audioId)]
+  if (!templates.length || !byId.has('punto') || ((settings.subjectCount === 2 || settings.complementCount > 1 || settings.clauseCount > 1) && !byId.has('y'))) return pick(savedPlans, settings.roundCount, 'saved-only')
+  const ordered = pick(templates, Math.max(0, settings.roundCount - savedPlans.length), 'generated-' + JSON.stringify([settings.subjectCount, settings.complementCount, settings.clauseCount]))
   const layout = sentenceLayout(settings)
   const generated = Array.from({ length: Math.min(settings.roundCount, ordered.length) }, (_, roundIndex): SentencePlan | undefined => {
     const first = ordered[roundIndex]
     const clauses = [first]
     if (settings.clauseCount === 2) {
-      const second = ordered.find((candidate) => candidate.actionId !== first.actionId) ?? ordered.find((candidate) => candidate.id !== first.id)
+      const second = templates.find((candidate) => candidate.id !== first.id && candidate.actionId !== first.actionId) ?? templates.find((candidate) => candidate.id !== first.id)
       if (!second) return undefined
       clauses.push(second)
     }
@@ -89,5 +116,5 @@ export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: 
     const sentence = { ...first, audioId: single ? first.audioId : undefined, sceneImage: single ? first.sceneImage : undefined }
     return { id: `plan-${roundIndex}-${clauses.map(({ id }) => id).join('-')}`, sentence, parts: parts as Pictogram[], roles: layout.map(({ role }) => role), audioId: sentence.audioId, sceneImage: sentence.sceneImage }
   }).filter((plan): plan is SentencePlan => Boolean(plan))
-  return [...savedPlans,...generated].slice(0,settings.roundCount)
+  return [...pick(savedPlans, settings.roundCount, 'saved-scenes'), ...generated].slice(0, settings.roundCount)
 }

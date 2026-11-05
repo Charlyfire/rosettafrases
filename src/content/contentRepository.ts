@@ -1,3 +1,5 @@
+import { readClassroom } from '../classroom/classroomRepository'
+import { pupilsToPictograms, pupilsToAudioResources } from '../classroom/classroomRuntime'
 import type { ActivityDefinition } from '../domain/activity'
 import type { ContentBank } from '../domain/content'
 import type { RosettaSequence } from '../domain/rosetta'
@@ -41,6 +43,11 @@ export const loadAppContent = async () => {
   const sceneRuntime = localScenes.map(localSceneToRuntime)
   activeLocalObjectUrls = [...localRuntime.flatMap(({ objectUrls }) => objectUrls),...sceneRuntime.flatMap(({ objectUrls }) => objectUrls)]
 
+  const classroom = await readClassroom()
+  const useClassroom = classroom.mode === 'class'
+  const classroomPictograms = useClassroom ? await pupilsToPictograms(classroom.pupils, classroom.display) : []
+  const classroomAudio = useClassroom ? pupilsToAudioResources(classroom.pupils) : { resources: [], urls: [] }
+  activeLocalObjectUrls.push(...classroomAudio.urls)
   const bundledPictograms = [...content.pictograms, ...constructionContent.pictograms]
   const bundledAudio = [...content.audio, ...constructionContent.audio]
   const mergedContent: ContentBank = {
@@ -48,8 +55,9 @@ export const loadAppContent = async () => {
     pictograms: [...new Map([
       ...bundledPictograms.map((pictogram) => ({ ...pictogram,source:'bundled' as const })),
       ...localRuntime.map(({ pictogram }) => pictogram),
-    ].map((pictogram) => [pictogram.id,pictogram])).values()],
-    audio: [...bundledAudio,...localRuntime.map(({ audio }) => audio),...localRuntime.flatMap(({ pluralAudio }) => pluralAudio ? [pluralAudio] : []),...sceneRuntime.flatMap(({ audio }) => audio ? [audio] : [])],
+      ...classroomPictograms,
+    ].map((pictogram) => [pictogram.id,pictogram])).values()].filter((item) => !useClassroom || !((item.categories.includes('subject') || item.categories.includes('character')) && !item.id.startsWith('pupil-'))),
+    audio: [...bundledAudio,...localRuntime.map(({ audio }) => audio),...localRuntime.flatMap(({ pluralAudio }) => pluralAudio ? [pluralAudio] : []),...sceneRuntime.flatMap(({ audio }) => audio ? [audio] : []), ...classroomAudio.resources],
   }
   const actionCompatibility = mergeCompatibility(sentenceCatalog.actionCompatibility,localRules)
 
@@ -70,6 +78,9 @@ export const loadAppContent = async () => {
     localScenes,
     localRules,
     localRecords,
+    classroomMode: classroom.mode,
+    classroomDisplay: classroom.display,
+    classroomCount: classroom.pupils.length,
   }
 }
 

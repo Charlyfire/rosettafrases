@@ -14,7 +14,7 @@ const settings = { subjectCount:1 as const,complementCount:1 as const,clauseCoun
 
 describe('significado de los tres controles docentes',()=>{
  it('dos sujetos comparten un único verbo plural y un único complemento',()=>{
-  const [plan] = buildSentencePlans(sentences,content,rules,{...settings,subjectCount:2})
+  const [plan] = buildSentencePlans(sentences,content,rules,{...settings,subjectCount:2},false,true)
   expect(plan.parts.map(({label})=>label)).toEqual(['mama','y','papa','comen','pan','punto'])
   expect(plan.roles.filter((role)=>role==='action')).toHaveLength(1)
   expect(plan.audioId).toBeUndefined()
@@ -22,26 +22,26 @@ describe('significado de los tres controles docentes',()=>{
   expect(content.find(({id})=>id==='come')?.audioIds).toEqual(['word-come'])
  })
  it('dos frases contienen dos verbos y sus complementos, sin convertirlas en dos actividades',()=>{
-  const [plan]=buildSentencePlans(sentences,content,rules,{...settings,clauseCount:2,roundCount:1})
+  const [plan]=buildSentencePlans(sentences,content,rules,{...settings,clauseCount:2,roundCount:1},false,true)
   expect(plan.parts.map(({label})=>label)).toEqual(['mama','come','pan','y','papa','bebe','agua','punto'])
   expect(plan.roles.filter((role)=>role==='action')).toHaveLength(2)
   expect(plan.roles.filter((role)=>role==='punctuation')).toHaveLength(1)
  })
  it('combina dos sujetos en cada una de dos frases y mantiene todas las y',()=>{
-  const [plan]=buildSentencePlans(sentences,content,rules,{...settings,subjectCount:2,clauseCount:2})
+  const [plan]=buildSentencePlans(sentences,content,rules,{...settings,subjectCount:2,clauseCount:2},false,true)
   expect(plan.roles.filter((role)=>role==='subject')).toHaveLength(4)
   expect(plan.roles.filter((role)=>role==='action')).toHaveLength(2)
   expect(plan.roles.filter((role)=>role==='conjunction')).toHaveLength(3)
   expect(plan.parts.filter((part)=>part.grammatical?.number==='plural').map(({label})=>label)).toEqual(['comen','beben'])
  })
  it('soporta tres complementos por verbo sin generar un catálogo de todas las combinaciones',()=>{
-  const [plan]=buildSentencePlans(sentences,content,rules,{...settings,subjectCount:2,complementCount:3,clauseCount:2})
+  const [plan]=buildSentencePlans(sentences,content,rules,{...settings,subjectCount:2,complementCount:3,clauseCount:2},false,true)
   expect(plan.roles.filter((role)=>role==='complement')).toHaveLength(6)
   expect(plan.roles.filter((role)=>role==='punctuation')).toHaveLength(1)
  })
  it('editar un sujeto coordinado conserva el verbo y los complementos válidos',()=>{
   const options={...settings,subjectCount:2 as const}
-  const [plan]=buildSentencePlans(sentences,content,rules,options)
+  const [plan]=buildSentencePlans(sentences,content,rules,options,false,true)
   const selection=[...plan.parts];selection[0]=content.find(({id})=>id==='sofia')!
   const next=reconcileSelection(selection,sentenceLayout(options),rules)
   expect(next.map((part)=>part?.id)).toEqual(['sofia','y','papa','come','pan','punto'])
@@ -55,6 +55,13 @@ describe('significado de los tres controles docentes',()=>{
   const restricted=[{...rules[0],allowedSubjectIds:['papa']},rules[1]]
   const plans=buildSentencePlans(sentences,content,restricted,settings)
   expect(plans.some((plan)=>plan.parts[0].id==='mama' && plan.parts[1].id==='come')).toBe(false)
+ })
+
+ it('las consultas de disponibilidad no consumen la selección de las siguientes actividades',()=>{
+  const before = buildSentencePlans(sentences,content,rules,{...settings,roundCount:1},false,true)
+  const again = buildSentencePlans(sentences,content,rules,{...settings,roundCount:1},false,true)
+  expect(before.map(({id})=>id)).toEqual(again.map(({id})=>id))
+  expect(before.length).toBeGreaterThan(0)
  })
 
 })
