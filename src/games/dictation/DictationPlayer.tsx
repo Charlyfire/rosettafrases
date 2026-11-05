@@ -106,12 +106,18 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
 
   const handleCorrect = (pictogram: Pictogram) => {
     const nextSelected = [...selected, pictogram]
+    let nextIndex = stepIndex + 1
+    // Commas are punctuation supplied by the game, not an answer to choose.
+    while (nextIndex < round.steps.length && round.steps[nextIndex].role === 'comma') {
+      nextSelected.push(round.parts[nextIndex])
+      nextIndex += 1
+    }
     setSelected(nextSelected)
     setAttempts(0)
     setWrongId(undefined)
-    if (stepIndex < round.steps.length - 1) {
+    if (nextIndex < round.steps.length) {
       stop()
-      setStepIndex((index) => index + 1)
+      setStepIndex(nextIndex)
       return
     }
 
