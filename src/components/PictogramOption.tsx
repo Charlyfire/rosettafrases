@@ -42,7 +42,7 @@ export function PictogramOption({
   useEffect(() => setImageMissing(false), [pictogram.image])
   const picture = (
     <button
-      className={`recognition-option recognition-option--${state} ${showLabel ? 'recognition-option--with-label' : ''} ${unavailable ? 'recognition-option--unavailable' : ''} ${selected ? 'recognition-option--selected' : ''}`}
+      className={`recognition-option recognition-option--${state} ${pictogram.tags.includes('classroom') ? 'recognition-option--pupil' : ''} ${showLabel ? 'recognition-option--with-label' : ''} ${unavailable ? 'recognition-option--unavailable' : ''} ${selected ? 'recognition-option--selected' : ''}`}
       type="button"
       disabled={disabled}
       data-unavailable={unavailable || undefined}
