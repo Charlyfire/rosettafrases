@@ -120,8 +120,10 @@ export async function importClassroom(json: string) {
   if (!parsed || typeof parsed !== 'object' || !('format' in parsed) || parsed.format !== 'rosetta-private-classroom' || !('pupils' in parsed) || !Array.isArray(parsed.pupils) || parsed.pupils.length > 100) {
     throw new Error('Este archivo no es una copia válida de Mi clase.')
   }
+  const payload = parsed as { mode?: unknown; display?: unknown; pupils: unknown[] }
   const imported: Pupil[] = []
-  for (const item of parsed.pupils) {
+  for (const unvalidated of payload.pupils) {
+    const item = unvalidated as { id?: unknown; name?: unknown; surnameInitial?: unknown; photo?: unknown; nameAudio?: unknown } | null
     if (!item || typeof item.id !== 'string' || typeof item.name !== 'string' || !item.name.trim() || item.name.length > 80 || (item.surnameInitial != null && typeof item.surnameInitial !== 'string')) throw new Error('Hay un alumno con datos no válidos.')
     let photo: Blob | undefined
     if (item.photo != null) {
@@ -142,8 +144,8 @@ export async function importClassroom(json: string) {
     const store = tx.objectStore(STORE)
     store.clear()
     imported.forEach((pupil) => store.put(pupil))
-    tx.objectStore(SETTINGS).put(parsed.mode === 'class' ? 'class' : 'rosetta', 'mode')
-    tx.objectStore(SETTINGS).put(parsed.display === 'photo' || parsed.display === 'name' ? parsed.display : 'both', 'display')
+    tx.objectStore(SETTINGS).put(payload.mode === 'class' ? 'class' : 'rosetta', 'mode')
+    tx.objectStore(SETTINGS).put(payload.display === 'photo' || payload.display === 'name' ? payload.display : 'both', 'display')
     await done(tx)
   } finally { db.close() }
 }
