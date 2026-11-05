@@ -109,7 +109,7 @@ export function SentenceGamePlayer({ mode, rounds, audioResources, showLabels, o
       {remaining.map(({ item, key }) => <PictogramOption key={`${round.id}-${key}`} pictogram={item} showLabel={showLabels} onListen={item.id === 'coma' ? undefined : () => play(audioFileFor(item))} listenDisabled={!audioFileFor(item)} onSelect={() => choose(item.id)} draggable onDragStart={(event: DragEvent<HTMLButtonElement>) => event.dataTransfer.setData('text/rosetta-pictogram', item.id)} />)}
     </section>}
     {complete && <nav className="game-controls"><button className="button" onClick={() => { setSelected([]); setFeedback(undefined) }}>Repetir</button>{(sentenceAudio || (mode !== 'complete-dictation' && partAudioFiles.length === spokenParts.length)) && <AudioButton label="Leer frase" ariaLabel="Leer la frase completa" onClick={playSentence} />}<button className="button button--primary" onClick={() => setRoundIndex((value) => value + 1)}>Siguiente actividad</button></nav>}
-    {complete && missingWords.length > 0 && <p className="teacher-oral-prompt">Audio plural pendiente: {missingWords.map(({ label }) => `«${label}»`).join(', ')}. Lectura del docente.</p>}
+    {complete && missingWords.length > 0 && <p className="teacher-oral-prompt">Faltan grabaciones para: {missingWords.map(({ label }) => `«${label}»`).join(', ')}. Lectura del docente.</p>}
     <Feedback message={feedback} />
     {audioError && <p className="asset-warning" role="status">No se ha podido reproducir uno de los audios.</p>}
   </main>
