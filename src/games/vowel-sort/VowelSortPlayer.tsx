@@ -47,7 +47,8 @@ export function VowelSortPlayer({ items, sounds, audioResources, showLabels, onE
     pointerPlayedRef.current = true
     draggedRef.current = false
     event.currentTarget.setPointerCapture(event.pointerId)
-    play(audioFileFor(pictogram))
+    const file = audioFileFor(pictogram)
+    if (file) play(file)
   }
   const pointerMove = (event: PointerEvent<HTMLButtonElement>) => {
     const start = pointerRef.current
@@ -76,11 +77,11 @@ export function VowelSortPlayer({ items, sounds, audioResources, showLabels, onE
           key={pictogram.id} pictogram={pictogram} showLabel={showLabels} selected={selectedId === pictogram.id}
           onSelect={() => {
             if (suppressClickRef.current) { suppressClickRef.current = false; pointerPlayedRef.current = false; return }
-            if (!pointerPlayedRef.current) play(audioFileFor(pictogram))
+            if (!pointerPlayedRef.current) { const file = audioFileFor(pictogram); if (file) play(file) }
             pointerPlayedRef.current = false
             setSelectedId(pictogram.id)
           }}
-          draggable onDragStart={(event) => { event.dataTransfer.setData('text/rosetta-pictogram', pictogram.id); play(audioFileFor(pictogram)) }}
+          draggable onDragStart={(event) => { event.dataTransfer.setData('text/rosetta-pictogram', pictogram.id); { const file = audioFileFor(pictogram); if (file) play(file) } }}
           onPointerDown={(event) => pointerDown(event, pictogram)} onPointerMove={pointerMove} onPointerUp={(event) => pointerUp(event, pictogram)}
         />)}
         {complete && <p className="vowel-sort-complete">{feedback}</p>}
