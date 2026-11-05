@@ -76,7 +76,7 @@ export async function pupilsToPictograms(pupils: Pupil[], display: PupilDisplay)
     audioIds: pupil.nameAudio ? [`word-pupil-${pupil.id}`] : [],
     categories: ['subject', 'character'] as Pictogram['categories'],
     tags: ['classroom'],
-    initialSound: pupil.name.trim().charAt(0).toLocaleLowerCase('es'),
+    initialSound: pupil.name.trim().charAt(0).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es'),
     availableFromUnit: 1,
     source: 'local' as const,
     grammatical: { role: ['subject'] as Array<'subject'>, number: 'singular' as const },
