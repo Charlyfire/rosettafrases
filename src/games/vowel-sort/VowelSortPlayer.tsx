@@ -94,7 +94,7 @@ export function VowelSortPlayer({ items, sounds, audioResources, showLabels, onE
           aria-label={`Colocar en ${sound.toUpperCase()}`}
         >
           <img className="vowel-sort-zone__vowel" src={resolveAssetUrl(`images/letra ${sound}.png`)} alt={`Letra ${sound.toUpperCase()}`} />
-          <span className="vowel-sort-zone__placed">{items.filter(({ id }) => placed[id] === sound).map((item) => <span className="vowel-sort-zone__item" key={item.id}><img src={resolveAssetUrl(item.image)} alt={item.label} />{showLabels && <small>{item.label}</small>}</span>)}</span>
+          <span className="vowel-sort-zone__placed">{items.filter(({ id }) => placed[id] === sound).map((item) => <span className="vowel-sort-zone__item" key={item.id}><img src={resolveAssetUrl(item.image)} alt={item.label} />{showLabels && !item.tags.includes('classroom') && <small>{item.label}</small>}</span>)}</span>
         </button>)}
       </section>
       <p className={audioError ? 'asset-warning' : 'asset-warning asset-warning--hidden'} role="status">{audioError ? 'No se ha podido reproducir uno de los audios.' : '\u00A0'}</p>
