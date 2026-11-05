@@ -44,7 +44,7 @@ export const loadAppContent = async () => {
   activeLocalObjectUrls = [...localRuntime.flatMap(({ objectUrls }) => objectUrls),...sceneRuntime.flatMap(({ objectUrls }) => objectUrls)]
 
   const classroom = await readClassroom()
-  const useClassroom = classroom.mode === 'class' && classroom.pupils.length > 0
+  const useClassroom = classroom.mode === 'class'
   const classroomPictograms = useClassroom ? await pupilsToPictograms(classroom.pupils, classroom.display) : []
   const classroomAudio = useClassroom ? pupilsToAudioResources(classroom.pupils) : { resources: [], urls: [] }
   activeLocalObjectUrls.push(...classroomAudio.urls)
