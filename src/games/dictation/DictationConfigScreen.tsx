@@ -13,6 +13,6 @@ interface Props {
 }
 export function DictationConfigScreen({ pictograms, sentences, compatibility, onBack, onStart }: Props) {
   return <SentenceConfigScreen title="Dictado secuenciado" available={(settings) =>
-    buildSentencePlans(sentences, pictograms, compatibility, { ...settings, roundCount: 1 }).length > 0
+    buildSentencePlans(sentences, pictograms, compatibility, { ...settings, roundCount: 1 }, false, true).length > 0
   } onBack={onBack} onStart={onStart} />
 }
