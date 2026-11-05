@@ -40,7 +40,7 @@ function done(transaction: IDBTransaction): Promise<void> {
 }
 
 export const normalizeName = (raw: string): string =>
-  raw.trim().replace(/\\s+/g, ' ').toLocaleLowerCase('es').replace(/(^|[ -])([a-záéíóúüñ])/gu, (_match, prefix: string, letter: string) => prefix + letter.toLocaleUpperCase('es'))
+  raw.trim().replace(/\s+/g, ' ').toLocaleLowerCase('es').replace(/(^|[ -])([a-záéíóúüñ])/gu, (_match, prefix: string, letter: string) => prefix + letter.toLocaleUpperCase('es'))
 
 export const normalizeInitial = (raw: string): string =>
   (raw.trim().replace(/\\./g, '').charAt(0).toLocaleUpperCase('es') || '')
@@ -113,7 +113,7 @@ export async function importClassroom(json: string) {
     if (!item || typeof item.id !== 'string' || typeof item.name !== 'string' || !item.name.trim() || item.name.length > 80 || (item.surnameInitial != null && typeof item.surnameInitial !== 'string')) throw new Error('Hay un alumno con datos no válidos.')
     let photo: Blob | undefined
     if (item.photo != null) {
-      if (typeof item.photo !== 'string' || !/^data:image\\/(png|jpeg|webp);base64,/.test(item.photo) || item.photo.length > 7000000) throw new Error('La copia incluye una imagen no compatible.')
+      if (typeof item.photo !== 'string' || !/^data:image\/(png|jpeg|webp);base64,/.test(item.photo) || item.photo.length > 7000000) throw new Error('La copia incluye una imagen no compatible.')
       const response = await fetch(item.photo)
       photo = await response.blob()
     }
