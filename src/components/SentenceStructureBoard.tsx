@@ -76,7 +76,7 @@ export function SentenceStructureBoard({
           >
             <span>{roleLabels[role]}</span>
             <div className="sentence-board__visual">{pictogram && <BoardImage key={pictogram.id} pictogram={pictogram} />}</div>
-            <strong>{showLabels ? pictogram?.label ?? '\u00A0' : '\u00A0'}</strong>
+            <strong>{showLabels && !pictogram?.tags.includes('classroom') ? pictogram?.label ?? '\u00A0' : '\u00A0'}</strong>
             {pictogram && onSelectSlot && <button
               type="button"
               className="sentence-board__edit"
