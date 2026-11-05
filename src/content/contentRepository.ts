@@ -1,5 +1,5 @@
 import { readClassroom } from '../classroom/classroomRepository'
-import { pupilsToPictograms } from '../classroom/classroomRuntime'
+import { pupilsToPictograms, pupilsToAudioResources } from '../classroom/classroomRuntime'
 import type { ActivityDefinition } from '../domain/activity'
 import type { ContentBank } from '../domain/content'
 import type { RosettaSequence } from '../domain/rosetta'
@@ -46,6 +46,8 @@ export const loadAppContent = async () => {
   const classroom = await readClassroom()
   const useClassroom = classroom.mode === 'class' && classroom.pupils.length > 0
   const classroomPictograms = useClassroom ? await pupilsToPictograms(classroom.pupils, classroom.display) : []
+  const classroomAudio = useClassroom ? pupilsToAudioResources(classroom.pupils) : { resources: [], urls: [] }
+  activeLocalObjectUrls.push(...classroomAudio.urls)
   const bundledPictograms = [...content.pictograms, ...constructionContent.pictograms]
   const bundledAudio = [...content.audio, ...constructionContent.audio]
   const mergedContent: ContentBank = {
@@ -55,7 +57,7 @@ export const loadAppContent = async () => {
       ...localRuntime.map(({ pictogram }) => pictogram),
       ...classroomPictograms,
     ].map((pictogram) => [pictogram.id,pictogram])).values()].filter((item) => !useClassroom || !((item.categories.includes('subject') || item.categories.includes('character')) && !item.id.startsWith('pupil-'))),
-    audio: [...bundledAudio,...localRuntime.map(({ audio }) => audio),...localRuntime.flatMap(({ pluralAudio }) => pluralAudio ? [pluralAudio] : []),...sceneRuntime.flatMap(({ audio }) => audio ? [audio] : [])],
+    audio: [...bundledAudio,...localRuntime.map(({ audio }) => audio),...localRuntime.flatMap(({ pluralAudio }) => pluralAudio ? [pluralAudio] : []),...sceneRuntime.flatMap(({ audio }) => audio ? [audio] : []), ...classroomAudio.resources],
   }
   const actionCompatibility = mergeCompatibility(sentenceCatalog.actionCompatibility,localRules)
 
