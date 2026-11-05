@@ -18,6 +18,6 @@ const titles: Record<SentenceGameMode, string> = {
 }
 export function SentenceGameConfigScreen({ mode, pictograms, sentences, compatibility, onBack, onStart }: Props) {
   return <SentenceConfigScreen title={titles[mode]} scene={mode === 'scene-sentence'} available={(settings) =>
-    buildSentencePlans(sentences, pictograms, compatibility, { ...settings, roundCount: 1 }, mode === 'scene-sentence').length > 0
+    buildSentencePlans(sentences, pictograms, compatibility, { ...settings, roundCount: 1 }, mode === 'scene-sentence', true).length > 0
   } onBack={onBack} onStart={onStart} />
 }
