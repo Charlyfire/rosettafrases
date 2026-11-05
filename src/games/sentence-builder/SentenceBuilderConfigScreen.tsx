@@ -13,7 +13,7 @@ interface Props {
 }
 
 export function SentenceBuilderConfigScreen({ pictograms, compatibility, onBack, onStart }: Props) {
-  return <><ClassroomParticipationNotice eligible={pictograms} /><SentenceConfigScreen title="Construye tu oración" available={(settings) =>
+  return <SentenceConfigScreen participation={<ClassroomParticipationNotice eligible={pictograms} />} title="Construye tu oración" available={(settings) =>
     builderChoices(pictograms, compatibility, settings).subjects.length >= settings.subjectCount
-  } onBack={onBack} onStart={onStart} /></>
+  } onBack={onBack} onStart={onStart} />
 }
