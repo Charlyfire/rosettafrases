@@ -15,7 +15,7 @@ function PupilCard({ pupil, display }: { pupil: Pupil; display: PupilDisplay }) 
     {display !== 'name' && imageUrl && <img src={imageUrl} alt="" className="classroom-photo" />}
     {(display !== 'photo' || !imageUrl) && <div className="classroom-name-line">
       <span className="classroom-name-box">{pupil.name}</span>
-      {pupil.surnameInitial && <span className="classroom-initial">{pupil.surnameInitial}.</span>}
+      {pupil.surnameInitial && <span className="classroom-initial">{normalizeInitial(pupil.surnameInitial)}</span>}
     </div>}
   </div>
 }
@@ -101,7 +101,7 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
       <h2>{editing ? 'Editar alumno' : 'Añadir alumno'}</h2>
       <form onSubmit={(event) => void save(event)} className="classroom-form">
         <label>Nombre <input required maxLength={60} value={name} onChange={(event) => setName(event.target.value)} placeholder="Nombre" /></label>
-        <label>Inicial del apellido (opcional) <input maxLength={2} value={initial} onChange={(event) => setInitial(event.target.value)} placeholder="Ej. M" /></label>
+        <label>Iniciales de apellidos (opcionales) <input maxLength={12} value={initial} onChange={(event) => setInitial(event.target.value)} placeholder="Ej. S. L." /></label>
         <label>Fotografía (opcional) <input id="classroom-photo-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setPhoto(event.target.files?.[0])} /></label>
         <label>Grabación del nombre (opcional, para juegos de escucha) <input id="classroom-audio-input" type="file" accept="audio/mpeg,audio/wav,audio/ogg,audio/webm" onChange={(event) => setNameAudio(event.target.files?.[0])} /></label>
         <div className="button-row"><button type="submit" className="button button--primary">Guardar alumno</button>{editing && <button type="button" className="button" onClick={() => { setEditing(undefined); setName(''); setInitial(''); setPhoto(undefined); setNameAudio(undefined) }}>Cancelar edición</button>}</div>
