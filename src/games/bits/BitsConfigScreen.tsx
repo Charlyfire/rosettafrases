@@ -1,3 +1,4 @@
+import { ClassroomParticipationNotice } from '../../classroom/ClassroomParticipationNotice'
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityHeader } from '../../components/ActivityHeader'
 import { SegmentedControl } from '../../components/SegmentedControl'
@@ -114,6 +115,7 @@ export function BitsConfigScreen({ pictograms, units, onBack, onStart }: BitsCon
           </div>
         )}
 
+        {(contentType === 'characters' || contentType === 'initial-sound-words') && <ClassroomParticipationNotice eligible={available} />}
         <div className="teacher-panel__footer">
           <p>{available.length} contenidos disponibles.</p>
           <button className="button button--primary button--large" type="submit" disabled={!canStart}>Iniciar presentación</button>
