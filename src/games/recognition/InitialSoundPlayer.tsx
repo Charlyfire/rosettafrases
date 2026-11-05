@@ -170,6 +170,7 @@ export function InitialSoundPlayer({
     <main className={`screen recognition-screen initial-sound-screen initial-sound-screen--${variant}`}>
       <ActivityHeader title={variantTitles[variant]} subtitle={`${roundIndex + 1} de ${rounds.length}`} onBack={onExit} />
       <section className="recognition-prompt">
+        {round && round.kind !== 'find-words' && round.kind !== 'same-sound' && round.model.tags.includes('classroom') && !audioFileFor(round.model) && <p className="teacher-oral-prompt">Pronuncia el nombre del alumno para esta actividad.</p>}
         {round.kind === 'find-words' && showVowelSupport && targetSound && <div className="recognition-letter"><img src={resolveAssetUrl(`images/letra ${targetSound}.png`)} alt={`Letra ${targetSound.toUpperCase()}`} /></div>}
         <AudioButton label={round.kind === 'find-words' ? `Palabras que empiezan por ${targetSound?.toUpperCase()}` : 'Escuchar otra vez'} ariaLabel="Repetir consigna" onClick={playPrompt} />
       </section>
