@@ -11,7 +11,8 @@ export async function renderPupilCard(pupil: Pupil, display: PupilDisplay): Prom
   await document.fonts.load('48px Escolar2')
   const canvas = document.createElement('canvas')
   canvas.width = 520
-  canvas.height = 420
+  // A compact name-only canvas prevents tiny labels in the selection cards.
+  canvas.height = display === 'name' || (display !== 'photo' && !pupil.photo) ? 205 : 420
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('El dispositivo no permite generar las etiquetas.')
   ctx.fillStyle = '#fffdf8'
@@ -23,7 +24,7 @@ export async function renderPupilCard(pupil: Pupil, display: PupilDisplay): Prom
       const img = new Image()
       img.src = localUrl
       await img.decode()
-      const box = display === 'photo' ? { x: 70, y: 20, w: 380, h: 380 } : { x: 160, y: 12, w: 200, h: 230 }
+      const box = display === 'photo' ? { x: 70, y: 20, w: 380, h: 380 } : { x: 150, y: 5, w: 220, h: 245 }
       const ratio = Math.max(box.w / img.width, box.h / img.height)
       const scaledW = img.width * ratio
       const scaledH = img.height * ratio
@@ -41,19 +42,19 @@ export async function renderPupilCard(pupil: Pupil, display: PupilDisplay): Prom
   if (display !== 'photo' || !pupil.photo) {
     const base = pupil.name
     const suffix = pupil.surnameInitial ? `${pupil.surnameInitial}.` : ''
-    const centerY = includePhoto ? 340 : 210
-    let font = 72
+    const centerY = includePhoto ? 339 : canvas.height / 2
+    let font = includePhoto ? 105 : 152
     ctx.font = `${font}px Escolar2`
-    while (ctx.measureText(base).width > 390 && font > 30) { font -= 2; ctx.font = `${font}px Escolar2` }
-    const width = Math.min(405, Math.ceil(ctx.measureText(base).width + 36))
+    while (ctx.measureText(base).width > 390 && font > 40) { font -= 2; ctx.font = `${font}px Escolar2` }
+    const width = Math.min(415, Math.ceil(ctx.measureText(base).width + 30))
     const sx = suffix ? (canvas.width - width - 64) / 2 : (canvas.width - width) / 2
     ctx.strokeStyle = '#111b30'
     ctx.lineWidth = 3
-    ctx.strokeRect(sx, centerY - font * .85, width, font * 1.22)
+    ctx.strokeRect(sx, centerY - font * .78, width, font * 1.15)
     ctx.fillStyle = '#111b30'
     ctx.textBaseline = 'middle'
-    ctx.fillText(base, sx + 18, centerY - font * .16)
-    if (suffix) { ctx.font = `${font * .7}px Escolar2`; ctx.fillText(suffix, sx + width + 8, centerY - font * .16) }
+    ctx.fillText(base, sx + 15, centerY - font * .12)
+    if (suffix) { ctx.font = `${font * .7}px Escolar2`; ctx.fillText(suffix, sx + width + 8, centerY - font * .12) }
   }
   return canvas.toDataURL('image/png')
 }
