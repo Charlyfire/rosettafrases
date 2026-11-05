@@ -45,7 +45,7 @@ export const normalizeName = (raw: string): string =>
   raw.trim().replace(/\s+/g, ' ').toLocaleLowerCase('es').replace(/(^|[ -])([a-záéíóúüñ])/gu, (_match, prefix: string, letter: string) => prefix + letter.toLocaleUpperCase('es'))
 
 export const normalizeInitial = (raw: string): string =>
-  raw.trim().split(/[\\s.]+/).filter(Boolean).slice(0, 2)
+  raw.trim().split(/[\s.]+/).filter(Boolean).slice(0, 2)
     .map((part) => part.charAt(0).toLocaleUpperCase('es') + '.').join(' ')
 
 export const pupilDisplayName = (pupil: Pupil) =>
