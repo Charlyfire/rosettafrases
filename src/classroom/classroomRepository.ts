@@ -116,7 +116,36 @@ export async function exportClassroom() {
   return JSON.stringify({ format: 'rosetta-private-classroom', version: 1, mode, display, pupils: records }, null, 2)
 }
 
+export interface ClassroomBackupSummary { pupils: number; photos: number; recordings: number }
+
+/** Validate the backup manifest without reading or exposing private image/audio content. */
+export function inspectClassroomBackup(json: string): ClassroomBackupSummary {
+  const parsed: unknown = JSON.parse(json)
+  if (!parsed || typeof parsed !== 'object' || !('format' in parsed) || parsed.format !== 'rosetta-private-classroom' || !('version' in parsed) || parsed.version !== 1 || !('pupils' in parsed) || !Array.isArray(parsed.pupils) || parsed.pupils.length > 100) {
+    throw new Error('La copia de Mi clase no tiene un formato compatible.')
+  }
+  const seen = new Set<string>()
+  let photos = 0
+  let recordings = 0
+  for (const pupil of parsed.pupils) {
+    if (!pupil || typeof pupil !== 'object' || typeof pupil.id !== 'string' || pupil.id.length > 100 || !pupil.id || seen.has(pupil.id) || typeof pupil.name !== 'string' || !pupil.name.trim() || pupil.name.length > 80) {
+      throw new Error('La copia contiene alumnos no válidos o duplicados.')
+    }
+    seen.add(pupil.id)
+    if (pupil.photo != null) {
+      if (typeof pupil.photo !== 'string' || !/^data:image\/(png|jpeg|webp);base64,/.test(pupil.photo) || pupil.photo.length > 7000000) throw new Error('La copia incluye una imagen inválida.')
+      photos += 1
+    }
+    if (pupil.nameAudio != null) {
+      if (typeof pupil.nameAudio !== 'string' || !/^data:audio\/(mpeg|mp3|wav|x-wav|ogg|webm);base64,/.test(pupil.nameAudio) || pupil.nameAudio.length > 9000000) throw new Error('La copia incluye un audio inválido.')
+      recordings += 1
+    }
+  }
+  return { pupils: parsed.pupils.length, photos, recordings }
+}
+
 export async function importClassroom(json: string) {
+  inspectClassroomBackup(json)
   const parsed: unknown = JSON.parse(json)
   if (!parsed || typeof parsed !== 'object' || !('format' in parsed) || parsed.format !== 'rosetta-private-classroom' || !('pupils' in parsed) || !Array.isArray(parsed.pupils) || parsed.pupils.length > 100) {
     throw new Error('Este archivo no es una copia válida de Mi clase.')
