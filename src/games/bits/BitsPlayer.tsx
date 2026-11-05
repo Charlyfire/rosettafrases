@@ -56,11 +56,11 @@ export function BitsPlayer({ pictograms, audioResources, settings, onExit }: Bit
   const initialSoundImage = resolveAssetUrl(`images/letra ${currentSound}.png`)
 
   const playAudio = useCallback(() => {
-    playAudioFile(currentAudio?.file)
+    if (currentAudio?.file) playAudioFile(currentAudio.file)
   }, [currentAudio?.file, playAudioFile])
 
   useEffect(() => {
-    if (settings.audioAutoplay && current) playAudio()
+    if (settings.audioAutoplay && current && currentAudio?.file) playAudio()
     return stop
   }, [current, playAudio, settings.audioAutoplay, stop])
 
@@ -123,6 +123,7 @@ export function BitsPlayer({ pictograms, audioResources, settings, onExit }: Bit
       <div className="bits-stage" aria-live="polite">
         <PictureCard key={current.id} pictogram={current} showLabel={settings.showLabel} />
       </div>
+      {current.tags.includes('classroom') && !currentAudio && <p className="teacher-oral-prompt">Pronuncia el nombre del alumno en voz alta.</p>}
       <nav className="player-controls" aria-label="Controles de la presentación">
         <button className="player-button" type="button" onClick={goPrevious} disabled={index === 0} aria-label="Anterior">
           <PlayerIcon name="previous" />
@@ -132,7 +133,7 @@ export function BitsPlayer({ pictograms, audioResources, settings, onExit }: Bit
             <PlayerIcon name={paused ? 'play' : 'pause'} />
           </button>
         )}
-        <button className="player-button player-button--audio" type="button" onClick={playAudio} aria-label="Repetir audio">
+        <button className="player-button player-button--audio" type="button" onClick={playAudio} disabled={!currentAudio} aria-label="Repetir audio">
           <PlayerIcon name="audio" />
           <span>Repetir audio</span>
         </button>
