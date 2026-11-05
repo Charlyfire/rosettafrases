@@ -717,3 +717,21 @@ h1, h2, p { margin-top: 0; }
   padding: 0;
   grid-template-rows: minmax(0,1fr);
 }
+
+
+/* Children must recognise the whole written name at interactive-board distance. */
+@media (min-width: 851px) {
+  .sentence-bank--subjects:has(.recognition-option--pupil) {
+    flex: 0 0 clamp(270px, 27vw, 390px);
+  }
+  .sentence-bank--subjects:has(.recognition-option--pupil) .sentence-bank__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(110px, 14vh);
+  }
+}
+.pictogram-card:has(.recognition-option--pupil):not(:has(.pictogram-card__listen)) {
+  grid-template-rows: minmax(0, 1fr);
+}
+.dictation-options .pictogram-card:has(img[src^="data:image/"]):not(:has(.pictogram-card__listen)) {
+  grid-template-rows: minmax(0, 1fr);
+}
