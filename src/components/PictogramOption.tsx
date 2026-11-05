@@ -62,7 +62,7 @@ export function PictogramOption({
           <span className="recognition-option__missing">PNG pendiente</span>
         )}
       </span>
-      {showLabel && <strong>{pictogram.label}</strong>}
+      {showLabel && !pictogram.tags.includes('classroom') && <strong>{pictogram.label}</strong>}
     </button>
   )
   if (!onListen) return picture
