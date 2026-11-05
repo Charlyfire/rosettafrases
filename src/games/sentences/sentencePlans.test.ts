@@ -57,4 +57,11 @@ describe('significado de los tres controles docentes',()=>{
   expect(plans.some((plan)=>plan.parts[0].id==='mama' && plan.parts[1].id==='come')).toBe(false)
  })
 
+ it('las consultas de disponibilidad no consumen la selección de las siguientes actividades',()=>{
+  const before = buildSentencePlans(sentences,content,rules,{...settings,roundCount:1},false,true)
+  const again = buildSentencePlans(sentences,content,rules,{...settings,roundCount:1},false,true)
+  expect(before.map(({id})=>id)).toEqual(again.map(({id})=>id))
+  expect(before.length).toBeGreaterThan(0)
+ })
+
 })
