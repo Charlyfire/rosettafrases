@@ -1,8 +1,9 @@
+import type { PupilDisplay } from './classroomRuntime'
 import { useEffect, useState } from 'react'
 import type { ClassroomMode, Pupil } from './classroomRepository'
-import { exportClassroom, importClassroom, normalizeInitial, normalizeName, readClassroom, removePupil, savePupil, setClassroomMode } from './classroomRepository'
+import { exportClassroom, importClassroom, normalizeInitial, normalizeName, readClassroom, removePupil, savePupil, setClassroomMode, setPupilDisplay } from './classroomRepository'
 
-function PupilCard({ pupil }: { pupil: Pupil }) {
+function PupilCard({ pupil, display }: { pupil: Pupil; display: PupilDisplay }) {
   const [imageUrl, setImageUrl] = useState<string>()
   useEffect(() => {
     if (!pupil.photo) { setImageUrl(undefined); return }
@@ -11,17 +12,18 @@ function PupilCard({ pupil }: { pupil: Pupil }) {
     return () => URL.revokeObjectURL(url)
   }, [pupil.photo])
   return <div className="classroom-pupil-card">
-    {imageUrl && <img src={imageUrl} alt="" className="classroom-photo" />}
-    <div className="classroom-name-line">
+    {display !== 'name' && imageUrl && <img src={imageUrl} alt="" className="classroom-photo" />}
+    {(display !== 'photo' || !imageUrl) && <div className="classroom-name-line">
       <span className="classroom-name-box">{pupil.name}</span>
       {pupil.surnameInitial && <span className="classroom-initial">{pupil.surnameInitial}.</span>}
-    </div>
+    </div>}
   </div>
 }
 
 export function ClassroomScreen({ onBack }: { onBack: () => void }) {
   const [pupils, setPupils] = useState<Pupil[]>([])
   const [mode, setMode] = useState<ClassroomMode>('rosetta')
+  const [display, setDisplay] = useState<PupilDisplay>('both')
   const [name, setName] = useState('')
   const [initial, setInitial] = useState('')
   const [photo, setPhoto] = useState<File>()
@@ -31,6 +33,7 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
     const state = await readClassroom()
     setPupils(state.pupils)
     setMode(state.mode)
+    setDisplay(state.display)
   }
   useEffect(() => { void reload().catch(() => setMessage('No se pudo abrir el almacenamiento local del navegador.')) }, [])
 
@@ -73,9 +76,20 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
         try { await setClassroomMode(next); setMode(next) } catch { setMessage('No se pudo cambiar el modo.') }
       }}>
         <option value="rosetta">Familia Rosetta</option>
-        <option value="class">Mi clase (en preparación para los juegos)</option>
+        <option value="class">Mi clase</option>
       </select>
+      {mode === 'class' && <label htmlFor="classroom-display">Mostrar alumnos
+        <select id="classroom-display" value={display} onChange={async (event) => {
+          const next = event.target.value as PupilDisplay
+          try { await setPupilDisplay(next); setDisplay(next) } catch { setMessage('No se pudo guardar la presentación.') }
+        }}>
+          <option value="photo">Solo fotografía</option>
+          <option value="name">Solo nombre</option>
+          <option value="both">Fotografía y nombre</option>
+        </select>
+      </label>}
     </div>
+    {mode === 'class' && display === 'photo' && pupils.some((p) => !p.photo) && <p className="notice">Los alumnos sin fotografía no aparecerán en el modo «Solo fotografía».</p>}
     <section className="classroom-editor">
       <h2>{editing ? 'Editar alumno' : 'Añadir alumno'}</h2>
       <form onSubmit={(event) => void save(event)} className="classroom-form">
@@ -88,7 +102,7 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
     <section className="classroom-students">
       <h2>Alumnos ({pupils.length})</h2>
       <div className="classroom-grid">{pupils.map((pupil) => <div key={pupil.id} className="classroom-student">
-        <PupilCard pupil={pupil} />
+        <PupilCard pupil={pupil} display={display} />
         <div className="button-row"><button className="button" type="button" onClick={() => startEdit(pupil)}>Editar</button><button className="button" type="button" onClick={async () => {
           if (!window.confirm('¿Eliminar este alumno de este dispositivo?')) return
           await removePupil(pupil.id); await reload()
