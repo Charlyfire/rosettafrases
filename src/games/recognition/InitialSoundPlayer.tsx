@@ -40,7 +40,7 @@ function ModelPicture({ pictogram, showLabel }: { pictogram: Pictogram; showLabe
   return (
     <figure className={showLabel ? 'initial-model__picture' : 'initial-model__picture initial-model__picture--without-label'}>
       <img src={resolveAssetUrl(pictogram.image)} alt={pictogram.label} draggable="false" />
-      {showLabel && <figcaption>{pictogram.label}</figcaption>}
+      {showLabel && !pictogram.tags.includes('classroom') && <figcaption>{pictogram.label}</figcaption>}
     </figure>
   )
 }
