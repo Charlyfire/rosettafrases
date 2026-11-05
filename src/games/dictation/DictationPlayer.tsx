@@ -183,7 +183,7 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
 
       {!sentenceComplete ? (
         <>
-          {targetAudio ? <AudioButton className="dictation-audio-button" label="Escuchar" ariaLabel="Escuchar palabra otra vez" onClick={playPrompt} /> : <p className="teacher-oral-prompt">{step.role === 'comma' ? 'Coloca la coma.' : `Audio plural pendiente: «${target.label}». Dictado oral del docente.`}</p>}
+          {targetAudio ? <AudioButton className="dictation-audio-button" label="Escuchar" ariaLabel="Escuchar palabra otra vez" onClick={playPrompt} /> : <p className="teacher-oral-prompt">{step.role === 'comma' ? 'Coloca la coma.' : `Audio no disponible: «${target.label}». Pronúncialo en voz alta para el alumno.`}</p>}
           <section className={`dictation-options dictation-options--${step.options.length}`} aria-label={`Elige ${roleLabels[step.role].toLowerCase()}`}>
             {step.options.map((pictogram) => (
               <div className="pictogram-card" key={`${round.id}-${stepIndex}-${pictogram.id}`}>
@@ -213,7 +213,7 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
           </div>
         </section>
       )}
-      {sentenceComplete && spokenAudioFiles.length !== spokenParts.length && <p className="teacher-oral-prompt">Audio plural pendiente. El docente puede leer la oración completa.</p>}
+      {sentenceComplete && spokenAudioFiles.length !== spokenParts.length && <p className="teacher-oral-prompt">No hay grabación completa para esta oración. El docente puede leerla en voz alta.</p>}
       <p className={audioMissing ? 'asset-warning' : 'asset-warning asset-warning--hidden'} role="status">
         {audioMissing ? 'Hay un audio pendiente o el navegador ha bloqueado su reproducción.' : ' '}
       </p>
