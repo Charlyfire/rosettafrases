@@ -65,7 +65,8 @@ export function PictogramOption({
       {showLabel && !pictogram.tags.includes('classroom') && <strong>{pictogram.label}</strong>}
     </button>
   )
-  if (!onListen) return picture
+  // Do not waste a row on an unavailable recording for private classroom names.
+  if (!onListen || (pictogram.tags.includes('classroom') && listenDisabled)) return picture
   return (
     <div className="pictogram-card">
       {picture}
