@@ -136,7 +136,7 @@ export async function importClassroom(json: string) {
       if (typeof item.nameAudio !== 'string' || !/^data:audio\/(mpeg|mp3|wav|x-wav|ogg|webm);base64,/.test(item.nameAudio) || item.nameAudio.length > 9000000) throw new Error('La copia incluye un audio no compatible.')
       nameAudio = await (await fetch(item.nameAudio)).blob()
     }
-    imported.push({ id: item.id, name: normalizeName(item.name), surnameInitial: normalizeInitial(item.surnameInitial ?? '') || undefined, photo, nameAudio })
+    imported.push({ id: item.id, name: normalizeName(item.name), surnameInitial: normalizeInitial(typeof item.surnameInitial === 'string' ? item.surnameInitial : '') || undefined, photo, nameAudio })
   }
   const db = await openClassroom()
   try {
