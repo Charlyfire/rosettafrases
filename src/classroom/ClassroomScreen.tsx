@@ -1,5 +1,5 @@
 import type { PupilDisplay } from './classroomRuntime'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { ClassroomMode, Pupil } from './classroomRepository'
 import { exportClassroom, importClassroom, normalizeInitial, normalizeName, readClassroom, removePupil, savePupil, setClassroomMode, setPupilDisplay } from './classroomRepository'
 
@@ -27,6 +27,7 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
   const [name, setName] = useState('')
   const [initial, setInitial] = useState('')
   const [photo, setPhoto] = useState<File>()
+  const [nameAudio, setNameAudio] = useState<File>()
   const [editing, setEditing] = useState<Pupil>()
   const [message, setMessage] = useState('')
   const reload = async () => {
@@ -37,24 +38,30 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
   }
   useEffect(() => { void reload().catch(() => setMessage('No se pudo abrir el almacenamiento local del navegador.')) }, [])
 
-  const save = async (event: React.FormEvent) => {
+  const save = async (event: FormEvent) => {
     event.preventDefault()
     if (!name.trim()) return
     if (photo && (!['image/jpeg', 'image/png', 'image/webp'].includes(photo.type) || photo.size > 4 * 1024 * 1024)) {
       setMessage('La fotografía debe ser JPG, PNG o WebP y ocupar menos de 4 MB.')
       return
     }
+    if (nameAudio && (!['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/webm'].includes(nameAudio.type) || nameAudio.size > 6 * 1024 * 1024)) {
+      setMessage('La grabación debe ser MP3, WAV, OGG o WebM y ocupar menos de 6 MB.')
+      return
+    }
     try {
-      await savePupil({ id: editing?.id ?? crypto.randomUUID(), name: normalizeName(name), surnameInitial: normalizeInitial(initial) || undefined, photo: photo ?? editing?.photo })
-      setName(''); setInitial(''); setPhoto(undefined); setEditing(undefined)
+      await savePupil({ id: editing?.id ?? crypto.randomUUID(), name: normalizeName(name), surnameInitial: normalizeInitial(initial) || undefined, photo: photo ?? editing?.photo, nameAudio: nameAudio ?? editing?.nameAudio })
+      setName(''); setInitial(''); setPhoto(undefined); setNameAudio(undefined); setEditing(undefined)
       const input = document.getElementById('classroom-photo-input') as HTMLInputElement | null
       if (input) input.value = ''
+      const audioInput = document.getElementById('classroom-audio-input') as HTMLInputElement | null
+      if (audioInput) audioInput.value = ''
       setMessage('Guardado únicamente en este navegador.')
       await reload()
     } catch { setMessage('No se pudo guardar el alumno en este dispositivo.') }
   }
 
-  const startEdit = (pupil: Pupil) => { setEditing(pupil); setName(pupil.name); setInitial(pupil.surnameInitial ?? ''); setPhoto(undefined) }
+  const startEdit = (pupil: Pupil) => { setEditing(pupil); setName(pupil.name); setInitial(pupil.surnameInitial ?? ''); setPhoto(undefined); setNameAudio(undefined) }
   const downloadBackup = async () => {
     try {
       const json = await exportClassroom()
@@ -96,7 +103,8 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
         <label>Nombre <input required maxLength={60} value={name} onChange={(event) => setName(event.target.value)} placeholder="Nombre" /></label>
         <label>Inicial del apellido (opcional) <input maxLength={2} value={initial} onChange={(event) => setInitial(event.target.value)} placeholder="Ej. M" /></label>
         <label>Fotografía (opcional) <input id="classroom-photo-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setPhoto(event.target.files?.[0])} /></label>
-        <div className="button-row"><button type="submit" className="button button--primary">Guardar alumno</button>{editing && <button type="button" className="button" onClick={() => { setEditing(undefined); setName(''); setInitial(''); setPhoto(undefined) }}>Cancelar edición</button>}</div>
+        <label>Grabación del nombre (opcional, para juegos de escucha) <input id="classroom-audio-input" type="file" accept="audio/mpeg,audio/wav,audio/ogg,audio/webm" onChange={(event) => setNameAudio(event.target.files?.[0])} /></label>
+        <div className="button-row"><button type="submit" className="button button--primary">Guardar alumno</button>{editing && <button type="button" className="button" onClick={() => { setEditing(undefined); setName(''); setInitial(''); setPhoto(undefined); setNameAudio(undefined) }}>Cancelar edición</button>}</div>
       </form>
     </section>
     <section className="classroom-students">
