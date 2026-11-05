@@ -93,7 +93,7 @@ export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: 
     const first = ordered[roundIndex]
     const clauses = [first]
     if (settings.clauseCount === 2) {
-      const second = ordered.find((candidate) => candidate.actionId !== first.actionId) ?? ordered.find((candidate) => candidate.id !== first.id)
+      const second = templates.find((candidate) => candidate.id !== first.id && candidate.actionId !== first.actionId) ?? templates.find((candidate) => candidate.id !== first.id)
       if (!second) return undefined
       clauses.push(second)
     }
