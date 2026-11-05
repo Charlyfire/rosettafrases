@@ -123,19 +123,24 @@ export async function importClassroom(json: string) {
   }
   const payload = parsed as { mode?: unknown; display?: unknown; pupils: unknown[] }
   const imported: Pupil[] = []
+  const importedIds = new Set<string>()
   for (const unvalidated of payload.pupils) {
     const item = unvalidated as { id?: unknown; name?: unknown; surnameInitial?: unknown; photo?: unknown; nameAudio?: unknown } | null
     if (!item || typeof item.id !== 'string' || typeof item.name !== 'string' || !item.name.trim() || item.name.length > 80 || (item.surnameInitial != null && typeof item.surnameInitial !== 'string')) throw new Error('Hay un alumno con datos no válidos.')
+    if (item.id.length > 100 || importedIds.has(item.id)) throw new Error('La copia tiene identificadores duplicados o inválidos.')
+    importedIds.add(item.id)
     let photo: Blob | undefined
     if (item.photo != null) {
       if (typeof item.photo !== 'string' || !/^data:image\/(png|jpeg|webp);base64,/.test(item.photo) || item.photo.length > 7000000) throw new Error('La copia incluye una imagen no compatible.')
       const response = await fetch(item.photo)
       photo = await response.blob()
+      if (photo.size > 5 * 1024 * 1024) throw new Error('Una imagen de la copia supera el límite permitido.')
     }
     let nameAudio: Blob | undefined
     if (item.nameAudio != null) {
       if (typeof item.nameAudio !== 'string' || !/^data:audio\/(mpeg|mp3|wav|x-wav|ogg|webm);base64,/.test(item.nameAudio) || item.nameAudio.length > 9000000) throw new Error('La copia incluye un audio no compatible.')
       nameAudio = await (await fetch(item.nameAudio)).blob()
+      if (nameAudio.size > 7 * 1024 * 1024) throw new Error('Un audio de la copia supera el límite permitido.')
     }
     imported.push({ id: item.id, name: normalizeName(item.name), surnameInitial: normalizeInitial(typeof item.surnameInitial === 'string' ? item.surnameInitial : '') || undefined, photo, nameAudio })
   }
