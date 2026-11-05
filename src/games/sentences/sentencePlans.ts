@@ -22,8 +22,6 @@ const pendingByPool = new Map<string, string[]>()
 export function selectSessionSentences<T extends { id: string }>(pool: T[], count: number, scope: string): T[] {
   const limit = Math.min(Math.max(count, 0), pool.length)
   if (limit === 0) return []
-  // An entire catalog fits in this activity: preserve the authored order.
-  if (limit === pool.length) return [...pool]
   const byId = new Map(pool.map((item) => [item.id, item]))
   const cacheKey = JSON.stringify([scope, pool.map(({ id }) => id).sort()])
   const pending = (pendingByPool.get(cacheKey) ?? []).filter((id) => byId.has(id))
@@ -41,7 +39,9 @@ export function selectSessionSentences<T extends { id: string }>(pool: T[], coun
   return chosen.map((id) => byId.get(id)!)
 }
 
-export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: Pictogram[], compatibility: ActionCompatibility[], settings: SentenceBuilderSettings, scenesOnly = false): SentencePlan[] {
+export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: Pictogram[], compatibility: ActionCompatibility[], settings: SentenceBuilderSettings, scenesOnly = false, preview = false): SentencePlan[] {
+  const pick = <T extends { id: string }>(pool: T[], count: number, scope: string) =>
+    preview ? pool.slice(0, Math.max(0, count)) : selectSessionSentences(pool, count, scope)
   const bank = builderChoices(pictograms, compatibility, settings)
   const byId = new Map([...pictograms, commaPictogram].map((item) => [item.id, item]))
   const actions = new Map(bank.actions.map((action) => [action.id, action]))
@@ -86,8 +86,8 @@ export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: 
       })
     })
   }
-  if (!templates.length || !byId.has('punto') || ((settings.subjectCount === 2 || settings.complementCount > 1 || settings.clauseCount > 1) && !byId.has('y'))) return selectSessionSentences(savedPlans, settings.roundCount, 'saved-only')
-  const ordered = selectSessionSentences(templates, Math.max(0, settings.roundCount - savedPlans.length), 'generated-' + JSON.stringify([settings.subjectCount, settings.complementCount, settings.clauseCount]))
+  if (!templates.length || !byId.has('punto') || ((settings.subjectCount === 2 || settings.complementCount > 1 || settings.clauseCount > 1) && !byId.has('y'))) return pick(savedPlans, settings.roundCount, 'saved-only')
+  const ordered = pick(templates, Math.max(0, settings.roundCount - savedPlans.length), 'generated-' + JSON.stringify([settings.subjectCount, settings.complementCount, settings.clauseCount]))
   const layout = sentenceLayout(settings)
   const generated = Array.from({ length: Math.min(settings.roundCount, ordered.length) }, (_, roundIndex): SentencePlan | undefined => {
     const first = ordered[roundIndex]
@@ -116,5 +116,5 @@ export function buildSentencePlans(sentences: SentenceDefinition[], pictograms: 
     const sentence = { ...first, audioId: single ? first.audioId : undefined, sceneImage: single ? first.sceneImage : undefined }
     return { id: `plan-${roundIndex}-${clauses.map(({ id }) => id).join('-')}`, sentence, parts: parts as Pictogram[], roles: layout.map(({ role }) => role), audioId: sentence.audioId, sceneImage: sentence.sceneImage }
   }).filter((plan): plan is SentencePlan => Boolean(plan))
-  return [...selectSessionSentences(savedPlans, settings.roundCount, 'saved-scenes'), ...generated].slice(0, settings.roundCount)
+  return [...pick(savedPlans, settings.roundCount, 'saved-scenes'), ...generated].slice(0, settings.roundCount)
 }
