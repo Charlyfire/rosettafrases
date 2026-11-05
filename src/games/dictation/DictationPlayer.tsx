@@ -188,7 +188,7 @@ export function DictationPlayer({ rounds, audioResources, audioAutoplay, showLab
                   aria-label={pictogram.label}
                 >
                   <span className="dictation-option__visual"><DictationImage pictogram={pictogram} /></span>
-                  {showLabels && <strong>{pictogram.label}</strong>}
+                  {showLabels && !pictogram.tags.includes('classroom') && <strong>{pictogram.label}</strong>}
                 </button>
                 <AudioButton className="pictogram-card__listen" disabled={!audioResources.some((audio) => pictogram.audioIds.includes(audio.id))} label="Escuchar" ariaLabel={`Escuchar ${pictogram.label}`} onClick={() => playFile(audioResources.find((audio) => pictogram.audioIds.includes(audio.id))?.file)} />
               </div>
