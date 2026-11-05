@@ -20,10 +20,16 @@ describe('rotación de frases entre actividades', () => {
     }
   })
 
+  it('baraja también cuando se solicita todo el repertorio', () => {
+    const pool = makePool('entire')
+    const selected = selectSessionSentences(pool, pool.length, 'entire')
+    expect(selected).toHaveLength(pool.length)
+    expect(new Set(selected.map(({ id }) => id)).size).toBe(pool.length)
+  })
   it('respeta el repertorio filtrado y no repite elementos en una sesión', () => {
     const pool = makePool('filtered')
     const subset = [pool[0], pool[3], pool[6]]
     expect(selectSessionSentences(subset, 2, 'dictado').every(({ id }) => subset.some((item) => item.id === id))).toBe(true)
-    expect(selectSessionSentences(subset, 8, 'dictado')).toEqual(subset)
+    expect(new Set(selectSessionSentences(subset, 8, 'dictado').map(({ id }) => id))).toEqual(new Set(subset.map(({ id }) => id)))
   })
 })
