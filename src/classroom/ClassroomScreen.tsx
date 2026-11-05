@@ -2,7 +2,7 @@ import { sanitizePupilPhoto } from './photoPrivacy'
 import type { PupilDisplay } from './classroomRuntime'
 import { useEffect, useState, type FormEvent } from 'react'
 import type { ClassroomMode, Pupil } from './classroomRepository'
-import { exportClassroom, importClassroom, normalizeInitial, normalizeName, readClassroom, removePupil, savePupil, setClassroomMode, setPupilDisplay } from './classroomRepository'
+import { exportClassroom, importClassroom, inspectClassroomBackup, normalizeInitial, normalizeName, readClassroom, removePupil, savePupil, setClassroomMode, setPupilDisplay } from './classroomRepository'
 
 function PupilCard({ pupil, display }: { pupil: Pupil; display: PupilDisplay }) {
   const [imageUrl, setImageUrl] = useState<string>()
@@ -127,9 +127,15 @@ export function ClassroomScreen({ onBack }: { onBack: () => void }) {
         <label className="button">Importar copia <input type="file" accept="application/json,.json" onChange={async (event) => {
           const file = event.target.files?.[0]
           if (!file) return
-          if (!window.confirm('IMPORTANTE: se sustituirán todos los alumnos de este navegador. ¿Has guardado antes una copia de seguridad?')) return
-          try { if (file.size > 200 * 1024 * 1024) throw new Error('Archivo demasiado grande'); await importClassroom(await file.text()); await reload(); setMessage('Copia importada en este dispositivo.') }
-          catch { setMessage('No se pudo importar esta copia.') }
+          try {
+            if (file.size > 200 * 1024 * 1024) throw new Error('Archivo demasiado grande')
+            const contents = await file.text()
+            const summary = inspectClassroomBackup(contents)
+            if (!window.confirm(`Esta copia contiene ${summary.pupils} alumnos, ${summary.photos} fotografías y ${summary.recordings} grabaciones. SUSTITUIRÁ todos los alumnos actuales. ¿Has guardado primero una copia de los datos actuales y quieres continuar?`)) return
+            await importClassroom(contents)
+            await reload()
+            setMessage(`Copia recuperada correctamente: ${summary.pupils} alumnos en este dispositivo.`)
+          } catch { setMessage('No se pudo importar la copia. Comprueba que el archivo sea válido; la clase existente se ha conservado salvo que falle el almacenamiento local.') }
           event.target.value = ''
         }} /></label>
       </div>
