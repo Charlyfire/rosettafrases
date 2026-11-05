@@ -1,3 +1,4 @@
+import { sanitizePupilPhoto } from './photoPrivacy'
 import type { PupilDisplay } from './classroomRuntime'
 export interface Pupil {
   id: string
@@ -163,7 +164,8 @@ export async function importClassroom(json: string) {
       if (typeof item.photo !== 'string' || !/^data:image\/(png|jpeg|webp);base64,/.test(item.photo) || item.photo.length > 7000000) throw new Error('La copia incluye una imagen no compatible.')
       const response = await fetch(item.photo)
       photo = await response.blob()
-      if (photo.size > 5 * 1024 * 1024) throw new Error('Una imagen de la copia supera el límite permitido.')
+      if (photo.size > 4 * 1024 * 1024) throw new Error('Una imagen de la copia supera el límite permitido.')
+      photo = await sanitizePupilPhoto(new File([photo], 'foto-alumno.jpg', { type: photo.type }))
     }
     let nameAudio: Blob | undefined
     if (item.nameAudio != null) {
