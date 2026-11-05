@@ -45,10 +45,11 @@ export const normalizeName = (raw: string): string =>
   raw.trim().replace(/\s+/g, ' ').toLocaleLowerCase('es').replace(/(^|[ -])([a-záéíóúüñ])/gu, (_match, prefix: string, letter: string) => prefix + letter.toLocaleUpperCase('es'))
 
 export const normalizeInitial = (raw: string): string =>
-  (raw.trim().replace(/\./g, '').charAt(0).toLocaleUpperCase('es') || '')
+  raw.trim().split(/[\\s.]+/).filter(Boolean).slice(0, 2)
+    .map((part) => part.charAt(0).toLocaleUpperCase('es') + '.').join(' ')
 
 export const pupilDisplayName = (pupil: Pupil) =>
-  `${pupil.name}${pupil.surnameInitial ? ' ' + pupil.surnameInitial + '.' : ''}`
+  `${pupil.name}${pupil.surnameInitial ? ' ' + normalizeInitial(pupil.surnameInitial) : ''}`
 
 export async function readClassroom(): Promise<{ pupils: Pupil[]; mode: ClassroomMode; display: PupilDisplay }> {
   const db = await openClassroom()
