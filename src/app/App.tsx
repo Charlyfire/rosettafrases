@@ -80,6 +80,9 @@ type AppData = {
   actionCompatibility: ActionCompatibility[]
   localRecords: LocalContentRecord[]
   localScenes:LocalSceneRecord[]
+  classroomMode: 'rosetta' | 'class'
+  classroomDisplay: 'photo' | 'name' | 'both'
+  classroomCount: number
   localRules:ActionCompatibility[]
   bundledPictograms:ContentBank['pictograms']
   baseCompatibility:ActionCompatibility[]
@@ -152,7 +155,7 @@ export function App() {
     )
   }
 
-  if (view === 'classroom') return <ClassroomScreen onBack={() => setView('home')} />
+  if (view === 'classroom') return <ClassroomScreen onBack={() => { setView('home'); void refreshData().catch(() => setError('No se pudo cargar la configuración de Mi clase.')) }} />
 
   if (view === 'content-manager') {
     return (
@@ -391,6 +394,7 @@ export function App() {
           <span className="eyebrow">Modo docente</span>
           <h1>Rosetta Digital</h1>
           <p>Selecciona un bloque para preparar la actividad.</p>
+          <p>Personajes: {data.classroomMode === "class" ? `Mi clase (${data.classroomCount} alumnos; ${data.classroomDisplay === "photo" ? "solo fotos" : data.classroomDisplay === "name" ? "solo nombres" : "foto y nombre"})` : "Familia Rosetta"}</p>
         </div>
         <div className="home-actions">
           <button className="button" type="button" onClick={() => setView('classroom')}>Mi clase</button>
