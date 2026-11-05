@@ -1,6 +1,6 @@
 import type { AudioResource, Pictogram } from '../domain/content'
 import type { Pupil } from './classroomRepository'
-import { pupilDisplayName } from './classroomRepository'
+import { normalizeInitial, pupilDisplayName } from './classroomRepository'
 
 export type PupilDisplay = 'photo' | 'name' | 'both'
 
@@ -41,21 +41,28 @@ export async function renderPupilCard(pupil: Pupil, display: PupilDisplay): Prom
   // A pupil without a photograph gets a name-only card, never a blank game option.
   if (display !== 'photo' || !pupil.photo) {
     const base = pupil.name
-    const suffix = pupil.surnameInitial ? pupil.surnameInitial : ''
+    const suffix = pupil.surnameInitial ? normalizeInitial(pupil.surnameInitial) : ''
     const centerY = includePhoto ? 339 : canvas.height / 2
     let font = includePhoto ? 105 : 152
     ctx.font = `${font}px Escolar2`
-    while (ctx.measureText(base).width > (suffix ? 305 : 420) && font > 40) { font -= 2; ctx.font = `${font}px Escolar2` }
-    const width = Math.min(suffix ? 325 : 460, Math.ceil(ctx.measureText(base).width + 30))
-    const suffixWidth = suffix ? (() => { ctx.font = `${font * .55}px Escolar2`; const w = ctx.measureText(suffix).width; ctx.font = `${font}px Escolar2`; return w })() : 0
-    const sx = Math.max(6, (canvas.width - width - suffixWidth - (suffix ? 8 : 0)) / 2)
+    // Name and surname initials use the SAME font size; fit the whole
+    // label (including initials outside the rectangle) inside the canvas.
+    const totalWidth = () => ctx.measureText(base).width + 30 +
+      (suffix ? 8 + ctx.measureText(suffix).width : 0)
+    while (totalWidth() > canvas.width - 24 && font > 30) {
+      font -= 2
+      ctx.font = `${font}px Escolar2`
+    }
+    const width = Math.ceil(ctx.measureText(base).width + 30)
+    const suffixWidth = suffix ? ctx.measureText(suffix).width : 0
+    const sx = (canvas.width - width - suffixWidth - (suffix ? 8 : 0)) / 2
     ctx.strokeStyle = '#111b30'
     ctx.lineWidth = 3
     ctx.strokeRect(sx, centerY - font * .78, width, font * 1.15)
     ctx.fillStyle = '#111b30'
     ctx.textBaseline = 'middle'
     ctx.fillText(base, sx + 15, centerY - font * .12)
-    if (suffix) { ctx.font = `${font * .55}px Escolar2`; ctx.fillText(suffix, sx + width + 8, centerY - font * .12) }
+    if (suffix) ctx.fillText(suffix, sx + width + 8, centerY - font * .12)
   }
   return canvas.toDataURL('image/png')
 }
