@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { loadAppContent } from '../content/contentRepository'
 import { ContentManagerScreen } from '../content/ContentManagerScreen'
+import { ClassroomScreen } from '../classroom/ClassroomScreen'
 import { selectContent } from '../content/contentFilters'
 import type {
   ActivityDefinition,
@@ -50,6 +51,7 @@ type View =
   | 'bits-config'
   | 'bits-player'
   | 'content-manager'
+  | 'classroom'
   | 'listen-config'
   | 'listen-player'
   | 'initial-config'
@@ -149,6 +151,8 @@ export function App() {
       />
     )
   }
+
+  if (view === 'classroom') return <ClassroomScreen onBack={() => setView('home')} />
 
   if (view === 'content-manager') {
     return (
@@ -389,6 +393,7 @@ export function App() {
           <p>Selecciona un bloque para preparar la actividad.</p>
         </div>
         <div className="home-actions">
+          <button className="button" type="button" onClick={() => setView('classroom')}>Mi clase</button>
           <button className="button" type="button" onClick={() => setView('content-manager')}>
             Banco de contenidos
           </button>
