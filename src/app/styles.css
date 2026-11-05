@@ -681,3 +681,39 @@ h1, h2, p { margin-top: 0; }
 .recognition-option--pupil { padding: .2rem; }
 .recognition-option--pupil .recognition-option__visual img { filter: none; }
 .sentence-game-options .recognition-option--pupil { padding: .1rem; }
+
+
+/* Pupil labels are already complete rectangular cards. The clickable target remains,
+   but its old pictogram tile must not surround or shrink the name label. */
+.recognition-option--pupil {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+.recognition-option--pupil:hover:not(:disabled) {
+  border: 0;
+  transform: none;
+  outline: 3px solid #7baea3;
+  outline-offset: 1px;
+}
+.recognition-option--pupil .recognition-option__visual { overflow: visible; }
+.recognition-option--pupil .recognition-option__visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: none;
+}
+.sentence-bank--subjects .recognition-option--pupil {
+  min-width: 0;
+  border: none;
+  background: transparent;
+}
+.dictation-option:has(.dictation-option__visual img[src^="data:image/"]) {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  grid-template-rows: minmax(0,1fr);
+}
