@@ -1,3 +1,4 @@
+import { ClassroomParticipationNotice } from '../../classroom/ClassroomParticipationNotice'
 import type { SentenceBuilderSettings } from '../../domain/activity'
 import type { Pictogram } from '../../domain/content'
 import type { ActionCompatibility } from '../../domain/sentence'
@@ -12,7 +13,7 @@ interface Props {
 }
 
 export function SentenceBuilderConfigScreen({ pictograms, compatibility, onBack, onStart }: Props) {
-  return <SentenceConfigScreen title="Construye tu oración" available={(settings) =>
+  return <><ClassroomParticipationNotice eligible={pictograms} /><SentenceConfigScreen title="Construye tu oración" available={(settings) =>
     builderChoices(pictograms, compatibility, settings).subjects.length >= settings.subjectCount
-  } onBack={onBack} onStart={onStart} />
+  } onBack={onBack} onStart={onStart} /></>
 }
