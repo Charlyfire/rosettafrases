@@ -1,4 +1,4 @@
-import type { Pictogram } from '../domain/content'
+import type { AudioResource, Pictogram } from '../domain/content'
 import type { Pupil } from './classroomRepository'
 import { pupilDisplayName } from './classroomRepository'
 
@@ -64,7 +64,7 @@ export async function pupilsToPictograms(pupils: Pupil[], display: PupilDisplay)
     id: `pupil-${pupil.id}`,
     label: escapeLabel(pupilDisplayName(pupil)),
     image: await renderPupilCard(pupil, display),
-    audioIds: [],
+    audioIds: pupil.nameAudio ? [`word-pupil-${pupil.id}`] : [],
     categories: ['subject', 'character'] as Pictogram['categories'],
     tags: ['classroom'],
     initialSound: pupil.name.trim().charAt(0).toLocaleLowerCase('es'),
@@ -72,4 +72,15 @@ export async function pupilsToPictograms(pupils: Pupil[], display: PupilDisplay)
     source: 'local' as const,
     grammatical: { role: ['subject'] as Array<'subject'>, number: 'singular' as const },
   })))
+}
+
+export function pupilsToAudioResources(pupils: Pupil[]): { resources: AudioResource[]; urls: string[] } {
+  const urls: string[] = []
+  const resources = pupils.flatMap((pupil): AudioResource[] => {
+    if (!pupil.nameAudio) return []
+    const url = URL.createObjectURL(pupil.nameAudio)
+    urls.push(url)
+    return [{ id: `word-pupil-${pupil.id}`, kind: 'word', file: url, transcript: pupilDisplayName(pupil) }]
+  })
+  return { resources, urls }
 }
