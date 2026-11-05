@@ -655,3 +655,24 @@ h1, h2, p { margin-top: 0; }
   .resource-panel .section-heading { align-items: stretch; flex-direction: column; }
   .resource-panel .form-row { grid-template-columns: 1fr; }
 }
+
+
+/* Private classroom settings; pupil photographs and names are not bundled assets. */
+.classroom-screen { max-width: 1150px; margin: 0 auto; padding: clamp(1rem, 3vw, 3rem); }
+.classroom-header { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem; }
+.classroom-toolbar, .classroom-editor, .classroom-students, .classroom-backups { border:2px solid var(--line); border-radius:18px; background:var(--paper); padding:1.3rem; margin-block:1rem; }
+.classroom-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:1rem; }
+.classroom-toolbar select, .classroom-form input { min-height:48px; font-size:1.1rem; border:2px solid var(--line); border-radius:9px; padding:.45rem .7rem; background:white; color:var(--ink); }
+.classroom-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); align-items:end; gap:1rem; }
+.classroom-form label { display:grid; gap:.35rem; }
+.classroom-form .button-row { grid-column:1 / -1; justify-content:flex-start; }
+.classroom-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1rem; }
+.classroom-student { border:1px solid var(--line); border-radius:15px; padding:1rem; }
+.classroom-student .button { min-height:42px; padding:.3rem .8rem; }
+.classroom-pupil-card { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:.7rem; min-height:132px; }
+.classroom-photo { width:92px; height:92px; border-radius:12px; object-fit:cover; border:2px solid var(--line); }
+.classroom-name-line { display:flex; align-items:center; justify-content:center; white-space:nowrap; font-family:"Escolar2",cursive; color:#111b30; font-weight:400; font-size:clamp(1.65rem,2.6vw,2.5rem); line-height:1.3; }
+.classroom-name-box { border:2.5px solid #111b30; border-radius:3px; padding:.1em .26em; }
+.classroom-initial { margin-left:.12em; }
+.classroom-backups input[type=file] { display:block; max-width:230px; font-size:.7rem; }
+.classroom-privacy-note { font-size:.95rem; color:var(--muted); }
